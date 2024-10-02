@@ -38,7 +38,7 @@ class CallCenterController extends Controller
     
             return response()->json([
                 'success' => true,
-                'message' => 'Company created successfully!',
+                'message' => 'Messages fetched successfully!',
                 'data' => $responseData
             ], 201);
         } catch (\Exception $e) {
