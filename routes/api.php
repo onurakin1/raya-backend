@@ -38,7 +38,7 @@ Route::post('/disable-notifications', [NotificationController::class, 'DisableNo
 Route::get('/agreements', [AgreementsController::class, 'index']);
 Route::get('/tour-registration', [TourController::class, 'tourRegistration']);
 Route::get('/tour-detail', [TourController::class, 'tourDetail']);
-Route::get('/tours', [TourController::class, 'getAllToursToGuide']);
+Route::post('/tours', [TourController::class, 'getAllToursToGuide'])->middleware('auth:sanctum');
 Route::get('/app-version-control', [AppControlsController::class, 'checkVersion']);
 Route::get('/generate-room-code', [ChannelController::class, 'generateRoomCode']);
 Route::get('/room-registration', [ChannelController::class, 'roomRegistration']);

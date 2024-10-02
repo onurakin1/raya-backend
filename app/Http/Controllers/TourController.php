@@ -103,7 +103,9 @@ class TourController extends Controller
 
     public function getAllToursToGuide(Request $request)
     {
-        $userId = $request->query('user_id');
+        $user = $request->user();
+        $userId = $user->id;
+
 
         // Kullanıcıya atanmış turları al
         $tours = Tours::whereHas('guides', function ($query) use ($userId) {
