@@ -21,12 +21,23 @@ class NotificationController extends Controller
     {
         // Veritabanından tüm verileri al
         $notification_settings = NotificationSettings::all();
-
+    
+        // Sadece id, title ve is_active (status) alanlarını içeren yeni bir yapı oluştur
+        $filtered_data = $notification_settings->map(function($item) {
+            return [
+                'id' => $item->id,
+                'title' => json_decode($item->title)->tr, // Title'ı JSON olarak çözüp 'tr' alanını alıyoruz
+                'status' => (bool) $item->is_active // is_active'i status olarak döndürüyoruz
+            ];
+        });
+    
         // Dönüştürülmüş veriyi JSON olarak döndür
         return response()->json([
             'status' => true,
-            'message' => 'The operation has been successfully completed.',
-            'data' => $notification_settings
+            'message' => 'The transaction was completed successfully.',
+            'data' => [
+                'items' => $filtered_data
+            ]
         ]);
     }
 
@@ -49,7 +60,9 @@ class NotificationController extends Controller
             'status' => true,
             'message' => 'notification settings status changed',
             'data' => [
-                'status' => $notification_settings_status,
+                'notification_id' => $notification_settings_status->notification_setting_id,
+                'status' => $notification_settings_status->status,
+                
 
             ]
         ]);
