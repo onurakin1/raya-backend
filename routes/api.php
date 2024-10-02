@@ -42,7 +42,7 @@ Route::post('/tours', [TourController::class, 'getAllToursToGuide'])->middleware
 Route::get('/app-version-control', [AppControlsController::class, 'checkVersion']);
 Route::get('/generate-room-code', [ChannelController::class, 'generateRoomCode']);
 Route::get('/room-registration', [ChannelController::class, 'roomRegistration']);
-Route::post('/create-channel', [TourController::class, 'CreateChannel'])->middleware('auth:sanctum');
+Route::post('/create-channel', [ChannelController::class, 'CreateChannel'])->middleware('auth:sanctum');
 Route::apiResource('sip', SipController::class);
 Route::post('/user-self', [MenuItemsController::class, 'UserSelf'])->middleware('auth:sanctum');
 Route::post('/register', [AuthController::class, 'register']);

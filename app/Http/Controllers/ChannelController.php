@@ -69,7 +69,7 @@ class ChannelController extends Controller
             $user = User::where('id', $userId)->first();
             if ($tour) {
                 // Yeni odanın bilgilerini bir dizi olarak atayın
-                $tour->voice_room = [
+                $tour->voice_rooms = [
                     'id' => $createRoom->id,
                     'name' => $createRoom->name,
                     'user' => [
