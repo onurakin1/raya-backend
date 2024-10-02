@@ -11,6 +11,8 @@ use App\Models\SipUsers;
 use App\Models\SipButtons;
 use App\Models\Sip;
 use App\Models\RoomUsers;
+use App\Models\User;
+use App\Models\TourDetails;
 use phpseclib3\Net\SSH2;
 
 class ChannelController extends Controller
@@ -26,11 +28,12 @@ class ChannelController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function CreateChannel(Request $request)
     {
 
         try {
-
+            $user = $request->user();
+            $userId = $user->id;
             function generateCode()
             {
                 $time = time() / 15;
@@ -62,6 +65,22 @@ class ChannelController extends Controller
 
             ]);
 
+            $tour = TourDetails::where('tour_id', $request->tour_id)->first();
+            $user = User::where('id', $userId)->first();
+            if ($tour) {
+                // Yeni odanın bilgilerini bir dizi olarak atayın
+                $tour->voice_room = [
+                    'id' => $createRoom->id,
+                    'name' => $createRoom->name,
+                    'user' => [
+                        'name' => $user->email,
+                        'photo_link' => $user->photo_link
+                    ]
+                ];
+                $tour->save(); // Değişiklikleri kaydedin
+            }
+    
+   
 
             return response()->json([
                 'success' => true,

@@ -134,8 +134,7 @@ class TourController extends Controller
                     'description' => optional($tour->details->first())->description,
                     'date' => optional($tour->details->first())->tour_dates,
                     'materials' => optional($tour->details->first())->materials ?? [],
-
-           
+         
                 ];
             }),
         ]);
