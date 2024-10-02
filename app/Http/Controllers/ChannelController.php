@@ -98,8 +98,8 @@ class ChannelController extends Controller
     }
     public function generateRoomCode(Request $request)
     {
-        // Kullanıcı ve oda ID'lerini al
-        $userId = $request->query('user_id');
+        $user = $request->user();
+        $userId = $user->id;
         $roomId = $request->query('room_id');
 
         // Kod oluşturma fonksiyonu

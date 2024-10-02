@@ -40,7 +40,7 @@ Route::get('/tour-registration', [TourController::class, 'tourRegistration']);
 Route::get('/tour-detail', [TourController::class, 'tourDetail']);
 Route::post('/tours', [TourController::class, 'getAllToursToGuide'])->middleware('auth:sanctum');
 Route::get('/app-version-control', [AppControlsController::class, 'checkVersion']);
-Route::get('/generate-room-code', [ChannelController::class, 'generateRoomCode']);
+Route::post('/generate-room-code', [ChannelController::class, 'generateRoomCode'])->middleware('auth:sanctum');
 Route::get('/room-registration', [ChannelController::class, 'roomRegistration']);
 Route::post('/create-channel', [ChannelController::class, 'CreateChannel'])->middleware('auth:sanctum');
 Route::apiResource('sip', SipController::class);
