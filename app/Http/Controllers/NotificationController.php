@@ -61,7 +61,7 @@ class NotificationController extends Controller
             'message' => 'notification settings status changed',
             'data' => [
                 'notification_id' => $notification_settings_status->notification_setting_id,
-                'status' => $notification_settings_status->status,
+                'status' =>(bool) $notification_settings_status->status,
                 
 
             ]
