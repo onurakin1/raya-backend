@@ -60,7 +60,7 @@ class ChannelController extends Controller
                 'name' => $request->number,
                 'room_code' => $roomCode,
                 'updated_at' => $today,
-                'created_by' => $request->guide_id,
+                'created_by' => $userId,
                 'tour_id' => $request->tour_id
 
             ]);
