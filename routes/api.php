@@ -13,6 +13,8 @@ use App\Http\Controllers\MenuItemsController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CallCenterController;
+
 
 Route::middleware('auth:sanctum', 'ability:' . TokenAbility::ISSUE_ACCESS_TOKEN->value)->group(function () {
     Route::get('/auth/refresh-token', [AuthController::class, 'refreshToken']);
@@ -45,6 +47,8 @@ Route::get('/room-registration', [ChannelController::class, 'roomRegistration'])
 Route::post('/create-channel', [ChannelController::class, 'CreateChannel'])->middleware('auth:sanctum');
 Route::apiResource('sip', SipController::class);
 Route::post('/user-self', [MenuItemsController::class, 'UserSelf'])->middleware('auth:sanctum');
+Route::post('/call-center', [CallCenterController::class, 'CallCenter'])->middleware('auth:sanctum');
+Route::post('/send-message', [CallCenterController::class, 'SendMessage'])->middleware('auth:sanctum');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/disable-endpoint', [AuthController::class, 'disableEndpoint']);
 Route::post('/login', [AuthController::class, 'login']);
