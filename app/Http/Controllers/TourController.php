@@ -99,7 +99,8 @@ class TourController extends Controller
         $roomsData = json_decode(optional($details->first())->voice_rooms, true);
         $rooms = [];
     
-        if ($roomsData) {
+        if ($roomsData && isset($roomsData['expires_time'])) {
+            // expires_time anahtarı var mı diye kontrol et
             $expiresTime = Carbon::parse($roomsData['expires_time']);
             if ($expiresTime->isFuture()) {
                 // expires_time gelecekte ise, voice_rooms verisini kullan
