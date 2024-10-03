@@ -108,7 +108,7 @@ class AuthController extends Controller
             ], 401);
         }
         $rooms = Rooms::where('created_by', $user->id)->first();
-  
+
 
         // 4 haneli kullanıcı adı oluşturma (rastgele sayı)
         $username = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
@@ -315,22 +315,25 @@ class AuthController extends Controller
                 'access_token' => $accessToken->plainTextToken,
                 'refresh_token' => $refreshToken->plainTextToken,
                 'expires_in' => $accessTokenExpiresIn,
+                'user' => [
+                    'id' => $user->id,
+                    'firstname' => $user->name,
+                    'lastname' => $user->last_name,
+                    'phone_number' =>  $user->phone_number,
+                    'username' => $user->email,
+               'photo_link' => $user->photo_link ?: "",
+                    'isabel' => [
+                        'username' => $username,
+                        'password' => $password,
+                        'link' => "https://pbx.limonisthost.com/"
+                    ],
+                    'room' => $rooms,
+                    'company' => $companyToGuides
+                ],
             ],
-            'user' => [
-                'id' => $user->id,
-                'firstname' => $user->name,
-                'lastname' => $user->last_name,
-                'phone_number' =>  $user->phone_number,
-                'full_name' => $user->email,
-                'photo_link' => $user->photo_link
-            ],
-            'isabel' => [
-                'username' => $username,
-                'password' => $password,
-                'link' => "https://pbx.limonisthost.com/"
-            ],
-            'room' => $rooms,
-            'company' => $companyToGuides
+
+
+
 
         ], 200);
     }

@@ -14,6 +14,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CallCenterController;
+use App\Http\Controllers\FileUploadController;
 
 
 Route::middleware('auth:sanctum', 'ability:' . TokenAbility::ISSUE_ACCESS_TOKEN->value)->group(function () {
@@ -51,5 +52,6 @@ Route::post('/call-center', [CallCenterController::class, 'CallCenter'])->middle
 Route::post('/send-message', [CallCenterController::class, 'SendMessage'])->middleware('auth:sanctum');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/disable-endpoint', [AuthController::class, 'disableEndpoint']);
+Route::post('/upload', [FileUploadController::class, 'upload']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
