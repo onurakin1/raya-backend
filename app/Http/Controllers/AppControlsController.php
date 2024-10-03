@@ -51,7 +51,7 @@ class AppControlsController extends Controller
        
         $version = $request->query('version');
         $type = $request->query('type');
-
+        $languageType = $request->header('Accept-Language');
 
         if (!$version || !$type) {
             return response()->json([
@@ -66,32 +66,34 @@ class AppControlsController extends Controller
   
         if ($app_control) {
 
+        
             if($app_control->content_type == 1){
                 return response()->json([
                     'status' => true,
                     'message' => 'The operation has been successfully completed.',
                     'data' => [
                         'status' => 'OK',
-                        'data' => [
-                            'contents' => $app_control->contents, 
-                            'button_title' => $app_control->button_title,
-                            'update_link' => $app_control->update_link,
-                            'button_action_type' => $app_control->button_action_type,
-                            'is_can_close' => $app_control->is_can_close,
-                        ],
+                   
+                 'data' => (object)[],
                      
                     ]
                 ], 200);
             }
             else if($app_control->content_type == 2){
+                $button_titles = json_decode($app_control->button_title, true);
+                $button_title = $button_titles[$languageType] ?? $button_titles['en'];
+    
+                
+                $contents = json_decode($app_control->contents, true);
+                $content = $contents[$languageType] ?? $contents['en'];
                 return response()->json([
                     'status' => true,
                     'message' => 'The operation has been successfully completed.',
                     'data' => [
                         'status' => 'REPAIR',
                         'data' => [
-                            'contents' => $app_control->contents, 
-                            'button_title' => $app_control->button_title,
+                            'contents' => $content, 
+                            'button_title' => $button_title,
                             'update_link' => $app_control->update_link,
                             'button_action_type' => $app_control->button_action_type,
                             'is_can_close' => $app_control->is_can_close,
@@ -106,14 +108,21 @@ class AppControlsController extends Controller
             $app_control_version = AppControls::where('type', $type)
             ->orderBy('id', 'desc') 
             ->first();
+
+            $button_titles = json_decode($app_control_version->button_title, true);
+            $button_title = $button_titles[$languageType] ?? $button_titles['en'];
+
+            
+            $contents = json_decode($app_control_version->contents, true);
+            $content = $contents[$languageType] ?? $contents['en'];
             return response()->json([
                 'status' => true,
                 'message' => 'The operation has been successfully completed.',
                 'data' => [
                     'status' => 'VERSION',
                     'data' => [
-                        'contents' => $app_control_version->contents, 
-                        'button_title' => $app_control_version->button_title,
+                        'contents' => $content, 
+                        'button_title' => $button_title,
                         'update_link' => $app_control_version->update_link,
                         'button_action_type' => $app_control_version->button_action_type,
                         'is_can_close' => $app_control_version->is_can_close,
