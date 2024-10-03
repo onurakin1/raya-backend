@@ -77,6 +77,7 @@ class ChannelController extends Controller
                 $tour->voice_rooms = [
                     'id' => $createRoom->id,
                     'name' => $createRoom->name,
+                    'expires_time' => $createRoom->expiration_time,
                     'user' => [
                         'name' => $user->email,
                         'photo_link' => $user->photo_link
@@ -88,7 +89,7 @@ class ChannelController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Channel created successfully!',
-                'createdChannel' => $createChannel,
+              
                 'data' => $createRoom
             ], 201);
         } catch (\Exception $e) {
