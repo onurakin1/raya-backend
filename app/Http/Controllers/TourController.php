@@ -99,15 +99,15 @@ class TourController extends Controller
         $roomsData = json_decode(optional($details->first())->voice_rooms, true);
         $rooms = [];
     
-        if ($roomsData && isset($roomsData['expires_time'])) {
-            // expires_time anahtarı var mı diye kontrol et
-            $expiresTime = Carbon::parse($roomsData['expires_time']);
-            if ($expiresTime->isFuture()) {
-                // expires_time gelecekte ise, voice_rooms verisini kullan
-                $rooms = $roomsData;
-            } else {
-                // expires_time geçmişse, boş array döndür
-                $rooms = [];
+        if ($roomsData && is_array($roomsData)) {
+            foreach ($roomsData as $room) {
+                if (isset($room['expires_time'])) {
+                    $expiresTime = Carbon::parse($room['expires_time']);
+                    if ($expiresTime->isFuture()) {
+                        // expires_time gelecekte ise, odayı ekle
+                        $rooms[] = $room;
+                    }
+                }
             }
         }
     
@@ -124,11 +124,12 @@ class TourController extends Controller
                 'code' => $tour->tour_code, // Eğer tour_code'yu da dahil etmek istiyorsanız
                 'description' => $tourDescription,
                 'date' => optional($details->first())->tour_dates,
-                'rooms' => $rooms,
+                'rooms' => $rooms, // Sadece geçerli odalar
                 'materials' => $materials ?? [], // Eğer materials null ise boş dizi döndür
             ],
         ]);
     }
+    
     
 
     public function getAllToursToGuide(Request $request)
