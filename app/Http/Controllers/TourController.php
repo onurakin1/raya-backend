@@ -114,6 +114,22 @@ class TourController extends Controller
         // materials verisini al
         $materials = json_decode(optional($details->first())->materials, true);
     
+        // Tur tarihlerini kontrol et
+        $tourDates = optional($details->first())->tour_dates;
+        $isClosed = false; // Varsayılan olarak kapalı değil
+    
+        if ($tourDates) {
+            // Tarih aralığını ayır
+            list($startDate, $endDate) = explode(' - ', $tourDates);
+            $startDate = Carbon::createFromFormat('d.m.Y', trim($startDate));
+            $endDate = Carbon::createFromFormat('d.m.Y', trim($endDate));
+    
+            // Eğer tarih aralığı geçmişse kapalı olarak işaretle
+            if ($endDate->isPast()) {
+                $isClosed = true;
+            }
+        }
+    
         // Tur bilgilerini ve detayları JSON formatında döndür
         return response()->json([
             'status' => true,
@@ -123,12 +139,14 @@ class TourController extends Controller
                 'title' => $tourName,
                 'code' => $tour->tour_code, // Eğer tour_code'yu da dahil etmek istiyorsanız
                 'description' => $tourDescription,
-                'date' => optional($details->first())->tour_dates,
+                'date' => $tourDates,
                 'rooms' => $rooms, // Sadece geçerli odalar
                 'materials' => $materials ?? [], // Eğer materials null ise boş dizi döndür
+                'closed' => $isClosed // Kapalı durumu
             ],
         ]);
     }
+    
     
     
 
