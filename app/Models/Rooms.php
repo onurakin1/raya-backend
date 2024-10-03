@@ -13,5 +13,5 @@ class Rooms extends Model
     public $timestamps = false;
     protected $table = "rooms";
     protected $primaryKey = 'id';
-    protected $fillable = ['name', 'room_code', 'updated_at', 'created_by', 'tour_id'];
+    protected $fillable = ['name', 'room_code', 'updated_at', 'created_by', 'tour_id', 'expiration_time'];
 }
