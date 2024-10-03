@@ -26,8 +26,7 @@ class IntroController extends Controller
     
             return [
                 'image' => $intro->image,
-                'button_title' => $button_title, // Button title'ı ekliyoruz
-                'description' => $intro->description, // orijinal açıklamayı da eklemek isterseniz
+                'description' => $button_title, // orijinal açıklamayı da eklemek isterseniz
             ];
         });
     
