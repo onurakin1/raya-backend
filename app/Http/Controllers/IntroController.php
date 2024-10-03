@@ -5,25 +5,32 @@ namespace App\Http\Controllers;
 use App\Models\Intro;
 use App\Http\Requests\StoreIntroRequest;
 use App\Http\Requests\UpdateIntroRequest;
+use Illuminate\Http\Request;
 
 class IntroController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Veritabanından tüm verileri al
+        $languageType = $request->header('Accept-Language');
         $intros = Intro::all();
-
+    
         // Veriyi istediğin formata dönüştür
-        $formattedIntros = $intros->map(function ($intro) {
+        $formattedIntros = $intros->map(function ($intro) use ($languageType) {
+            // description'dan button_title bilgilerini çıkar
+            $button_titles = json_decode($intro->description, true);
+            // Dil bilgisine göre button_title'ı belirle
+            $button_title = $button_titles[$languageType] ?? $button_titles['en'];
+    
             return [
                 'image' => $intro->image,
-                'description' => $intro->description,
+                'button_title' => $button_title, // Button title'ı ekliyoruz
+                'description' => $intro->description, // orijinal açıklamayı da eklemek isterseniz
             ];
         });
-
+    
         // Dönüştürülmüş veriyi JSON olarak döndür
         return response()->json([
             'status' => true,
@@ -31,8 +38,6 @@ class IntroController extends Controller
             'data' => [
                 'items' => $formattedIntros
             ]
-            
-            
         ]);
     }
 
