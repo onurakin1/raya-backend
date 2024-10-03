@@ -43,9 +43,9 @@ class ChannelController extends Controller
                 return $numericCode;
             }
     
-            // Geçerlilik süresini gece 12'ye kadar ayarlama
+            // 24 saatlik geçerlilik süresi hesaplama
             $now = Carbon::now();
-            $expirationTime = $now->copy()->setTime(23, 59, 59); // Gece 12'ye kadar geçerli
+            $expirationTime = $now->copy()->setTime(23, 59, 59);
     
             // Kanal oluşturma
             $createChannel = MeetMe::create([
@@ -62,10 +62,11 @@ class ChannelController extends Controller
     
             // Oda oluşturma
             $roomCode = generateCode();
+            $today = Carbon::today();
             $createRoom = Rooms::create([
                 'name' => $request->number,
                 'room_code' => $roomCode,
-                'updated_at' => $now,
+                'updated_at' => $today,
                 'created_by' => $userId,
                 'tour_id' => $request->tour_id,
                 'expiration_time' => $expirationTime // Geçerlilik süresi ekleniyor
@@ -110,7 +111,6 @@ class ChannelController extends Controller
             ], 500);
         }
     }
-    
     
     
     public function generateRoomCode(Request $request)
