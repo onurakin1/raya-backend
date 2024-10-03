@@ -84,8 +84,10 @@ class ChannelController extends Controller
                 $newRoom = [
                     'id' => $createRoom->id,
                     'name' => $createRoom->name,
+                    'expires_time' => $createRoom->expiration_time,
                     'code' => $createRoom->room_code,
                     'guide' => [
+                        'id' => $user->id,
                         'full_name' => $user->email,
                         'photo_link' => $user->photo_link
                     ]
