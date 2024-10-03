@@ -28,7 +28,11 @@ class IntroController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'The operation has been successfully completed.',
-            'data' => $formattedIntros
+            'data' => [
+                'items' => $formattedIntros
+            ]
+            
+            
         ]);
     }
 
