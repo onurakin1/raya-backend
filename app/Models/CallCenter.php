@@ -11,5 +11,5 @@ class CallCenter extends Model
     public $timestamps = false;
     protected $table = "call_center_messages";
     protected $primaryKey = 'id';
-    protected $fillable = ['customer_id', 'device_id', 'content', 'sender_type', 'is_active', 'created_at', 'updated_at', 'deleted_at'];
+    protected $fillable = ['user_id', 'content', 'sender_type', 'is_active', 'created_at', 'updated_at', 'deleted_at'];
 }

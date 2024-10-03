@@ -48,7 +48,7 @@ class NotificationController extends Controller
         $id = $request->query('id');
         $today = Carbon::today();
         $notification_settings_status = UserNotificationSettings::create([
-            'customer_id' => $user->id,
+            'user_id' => $user->id,
             'notification_setting_id' => $id,
             'status' => $status == true ? 1 : 0,
             'created_at' => $today,

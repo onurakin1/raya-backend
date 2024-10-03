@@ -9,7 +9,7 @@ class UserNotificationSettings extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected $table = "customer_notification_settings";
+    protected $table = "user_notification_settings";
     protected $primaryKey = 'id';
-    protected $fillable = ['customer_id', 'notification_setting_id', 'status', 'created_at', 'updated_at', 'deleted_at'];
+    protected $fillable = ['user_id', 'notification_setting_id', 'status', 'created_at', 'updated_at', 'deleted_at'];
 }

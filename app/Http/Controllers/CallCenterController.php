@@ -17,7 +17,7 @@ class CallCenterController extends Controller
             $userId = $user->id;
     
             // Fetch the user's message from CallCenter
-            $UsersMessage = CallCenter::where('customer_id', $userId)->first();
+            $UsersMessage = CallCenter::where('user_id', $userId)->first();
     
             // Prepare the base data
             $responseData = [
@@ -60,7 +60,7 @@ class CallCenterController extends Controller
             $content = $request->content;
 
             $createdMessage = CallCenter::create([
-                'customer_id' => $userId,
+                'user_id' => $userId,
                 'content' => $content,
                 'created_at' => $today,
                 'is_active' => true,
