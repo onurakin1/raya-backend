@@ -50,7 +50,24 @@ class TourController extends Controller
     {
         $code = $request->query('code');
         $tour = Tours::where('tour_code', $code)->first();
+        $details = $tour->details;
+        $tourDates = optional($details->first())->tour_dates;
 
+        if ($tour) {
+            // Tarih aralığını ayır
+            list($startDate, $endDate) = explode(' - ', $tourDates);
+            $startDate = Carbon::createFromFormat('d.m.Y', trim($startDate));
+            $endDate = Carbon::createFromFormat('d.m.Y', trim($endDate));
+
+            // Eğer tarih aralığı geçmişse kapalı olarak işaretle
+            if ($endDate->isPast()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Tur tarihi geçmiş',
+                    'data' => (object) [],
+                ], 404);
+            }
+        }
         if (!$tour) {
             return response()->json([
                 'status' => false,
