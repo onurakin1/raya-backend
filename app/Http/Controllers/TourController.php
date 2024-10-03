@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tours;
 use Illuminate\Http\Request;
 use App\Models\TourToGuide;
-
+use Carbon\Carbon;
 
 class TourController extends Controller
 {
@@ -94,9 +94,23 @@ class TourController extends Controller
         // İlk detayın açıklamasını al
         $tourDescriptions = json_decode(optional($details->first())->description, true);
         $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? ''; // 'en' değeri yoksa boş bir string döndür
-
-        $rooms = json_decode(optional($details->first())->voice_rooms, true);
-
+    
+        // voice_rooms kontrolü (geçerlilik süresine göre)
+        $roomsData = json_decode(optional($details->first())->voice_rooms, true);
+        $rooms = [];
+    
+        if ($roomsData) {
+            $expiresTime = Carbon::parse($roomsData['expires_time']);
+            if ($expiresTime->isFuture()) {
+                // expires_time gelecekte ise, voice_rooms verisini kullan
+                $rooms = $roomsData;
+            } else {
+                // expires_time geçmişse, boş array döndür
+                $rooms = [];
+            }
+        }
+    
+        // materials verisini al
         $materials = json_decode(optional($details->first())->materials, true);
     
         // Tur bilgilerini ve detayları JSON formatında döndür
@@ -109,7 +123,7 @@ class TourController extends Controller
                 'code' => $tour->tour_code, // Eğer tour_code'yu da dahil etmek istiyorsanız
                 'description' => $tourDescription,
                 'date' => optional($details->first())->tour_dates,
-                'rooms' => $rooms ?? [],
+                'rooms' => $rooms,
                 'materials' => $materials ?? [], // Eğer materials null ise boş dizi döndür
             ],
         ]);
