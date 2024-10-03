@@ -19,14 +19,15 @@ class IntroController extends Controller
     
         // Veriyi istediğin formata dönüştür
         $formattedIntros = $intros->map(function ($intro) use ($languageType) {
-            // description'dan button_title bilgilerini çıkar
-            $button_titles = json_decode($intro->description, true);
-            // Dil bilgisine göre button_title'ı belirle
-            $button_title = $button_titles[$languageType] ?? $button_titles['en'];
+            // description alanını JSON'dan diziye dönüştür
+            $descriptions = json_decode($intro->description, true);
+    
+            // Dil bilgisine göre açıklamayı al
+            $description = $descriptions[$languageType] ?? $descriptions['en'] ?? '';
     
             return [
                 'image' => $intro->image,
-                'description' => $button_title, // orijinal açıklamayı da eklemek isterseniz
+                'description' => $description, // Kullanıcının diline göre açıklamayı ekle
             ];
         });
     
@@ -39,6 +40,7 @@ class IntroController extends Controller
             ]
         ]);
     }
+    
 
     /**
      * Store a newly created resource in storage.
