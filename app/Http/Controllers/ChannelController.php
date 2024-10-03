@@ -30,10 +30,10 @@ class ChannelController extends Controller
      */
     public function CreateChannel(Request $request)
     {
-
         try {
             $user = $request->user();
             $userId = $user->id;
+            
             function generateCode()
             {
                 $time = time() / 15;
@@ -41,7 +41,11 @@ class ChannelController extends Controller
                 $numericCode = substr(str_pad(preg_replace('/\D/', '', $code), 6, '0', STR_PAD_LEFT), 0, 6);
                 return $numericCode;
             }
-
+    
+            // 24 saatlik geçerlilik süresi hesaplama
+            $expirationTime = Carbon::now()->addHours(24);
+    
+            // Kanal oluşturma
             $createChannel = MeetMe::create([
                 'exten' => $request->number,
                 'options' => 'qMm',
@@ -50,25 +54,26 @@ class ChannelController extends Controller
                 'description' => $request->name,
                 'joinmsg_id' => 0,
                 'music' => 'inherit',
-                'users' => 0
+                'users' => 0,
+                'expiration_time' => $expirationTime // Geçerlilik süresi ekleniyor
             ]);
-
+    
+            // Oda oluşturma
             $roomCode = generateCode();
-
             $today = Carbon::today();
             $createRoom = Rooms::create([
                 'name' => $request->number,
                 'room_code' => $roomCode,
                 'updated_at' => $today,
                 'created_by' => $userId,
-                'tour_id' => $request->tour_id
-
+                'tour_id' => $request->tour_id,
+                'expiration_time' => $expirationTime // Geçerlilik süresi ekleniyor
             ]);
-
+    
+            // Tur bilgilerini güncelleme
             $tour = TourDetails::where('tour_id', $request->tour_id)->first();
             $user = User::where('id', $userId)->first();
             if ($tour) {
-                // Yeni odanın bilgilerini bir dizi olarak atayın
                 $tour->voice_rooms = [
                     'id' => $createRoom->id,
                     'name' => $createRoom->name,
@@ -77,11 +82,9 @@ class ChannelController extends Controller
                         'photo_link' => $user->photo_link
                     ]
                 ];
-                $tour->save(); // Değişiklikleri kaydedin
+                $tour->save();
             }
     
-   
-
             return response()->json([
                 'success' => true,
                 'message' => 'Channel created successfully!',
@@ -89,13 +92,13 @@ class ChannelController extends Controller
                 'data' => $createRoom
             ], 201);
         } catch (\Exception $e) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create channel: ' . $e->getMessage(),
             ], 500);
         }
     }
+    
     public function generateRoomCode(Request $request)
     {
         $user = $request->user();
