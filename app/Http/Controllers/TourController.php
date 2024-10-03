@@ -74,7 +74,7 @@ class TourController extends Controller
         $id = $request->query('id');
         $tour = Tours::where('id', $id)->first();
         $languageType = $request->header('Accept-Language');
-    
+
         // Eğer tur bulunamazsa hata mesajı döndür
         if (!$tour) {
             return response()->json([
@@ -83,22 +83,22 @@ class TourController extends Controller
                 'data' => null
             ], 404); // 404 Not Found
         }
-    
+
         // Tur adı için dil bilgisine göre değer al
         $tourNames = json_decode($tour->name, true);
         $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? ''; // 'en' değeri yoksa boş bir string döndür
-    
+
         // İlişkili detayları al
         $details = $tour->details;
-    
+
         // İlk detayın açıklamasını al
         $tourDescriptions = json_decode(optional($details->first())->description, true);
         $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? ''; // 'en' değeri yoksa boş bir string döndür
-    
+
         // voice_rooms kontrolü (geçerlilik süresine göre)
         $roomsData = json_decode(optional($details->first())->voice_rooms, true);
         $rooms = [];
-    
+
         if ($roomsData && is_array($roomsData)) {
             foreach ($roomsData as $room) {
                 if (isset($room['expires_time'])) {
@@ -110,26 +110,26 @@ class TourController extends Controller
                 }
             }
         }
-    
+
         // materials verisini al
         $materials = json_decode(optional($details->first())->materials, true);
-    
+
         // Tur tarihlerini kontrol et
         $tourDates = optional($details->first())->tour_dates;
         $isClosed = false; // Varsayılan olarak kapalı değil
-    
+
         if ($tourDates) {
             // Tarih aralığını ayır
             list($startDate, $endDate) = explode(' - ', $tourDates);
             $startDate = Carbon::createFromFormat('d.m.Y', trim($startDate));
             $endDate = Carbon::createFromFormat('d.m.Y', trim($endDate));
-    
+
             // Eğer tarih aralığı geçmişse kapalı olarak işaretle
             if ($endDate->isPast()) {
                 $isClosed = true;
             }
         }
-    
+
         // Tur bilgilerini ve detayları JSON formatında döndür
         return response()->json([
             'status' => true,
@@ -146,21 +146,21 @@ class TourController extends Controller
             ],
         ]);
     }
-    
-    
-    
+
+
+
 
     public function getAllToursToGuide(Request $request)
     {
         $user = $request->user();
         $userId = $user->id;
         $languageType = $request->header('Accept-Language');
-    
+
         // Kullanıcıya atanmış turları al
         $tours = Tours::whereHas('guides', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with('details')->get();
-    
+
         // Eğer kullanıcıya atanmış tur yoksa hata mesajı döndür
         if ($tours->isEmpty()) {
             return response()->json([
@@ -169,7 +169,7 @@ class TourController extends Controller
                 'data' => null
             ], 404); // 404 Not Found
         }
-    
+
         // Turları ve detaylarını JSON formatında döndür
         return response()->json([
             'status' => true,
@@ -178,19 +178,19 @@ class TourController extends Controller
                 // Tur adı için dil kontrolü
                 $tourNames = json_decode($tour->name, true);
                 $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? '';
-    
+
                 // Detay açıklaması için dil kontrolü
                 $tourDetails = $tour->details->first();
                 $tourDescriptions = json_decode(optional($tourDetails)->description, true);
                 $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
-    
+
                 $tourRooms = json_decode(optional($tourDetails)->voice_rooms, true);
                 $tourMaterials = json_decode(optional($tourDetails)->materials, true);
                 // Diğer detaylar (tarih, materyaller, odalar)
                 $tourDate = optional($tourDetails)->tour_dates ?? 'N/A'; // Eğer tarih yoksa 'N/A' göster
                 $tourMaterial = $tourMaterials ?? []; // Eğer materyaller null ise boş dizi
                 $tourRoom = $tourRooms ?? []; // Eğer odalar null ise boş dizi
-    
+
                 return [
                     'id' => $tour->id,
                     'code' => $tour->tour_code,
@@ -203,7 +203,7 @@ class TourController extends Controller
             }),
         ]);
     }
-    
+
 
     public function show($code) {}
 
