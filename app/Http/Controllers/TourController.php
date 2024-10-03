@@ -94,6 +94,8 @@ class TourController extends Controller
         // İlk detayın açıklamasını al
         $tourDescriptions = json_decode(optional($details->first())->description, true);
         $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? ''; // 'en' değeri yoksa boş bir string döndür
+
+        $materials = json_decode(optional($details->first())->materials, true);
     
         // Tur bilgilerini ve detayları JSON formatında döndür
         return response()->json([
@@ -105,7 +107,7 @@ class TourController extends Controller
                 'code' => $tour->tour_code, // Eğer tour_code'yu da dahil etmek istiyorsanız
                 'description' => $tourDescription,
                 'date' => optional($details->first())->tour_dates,
-                'materials' => optional($details->first())->materials ?? [], // Eğer materials null ise boş dizi döndür
+                'materials' => $materials ?? [], // Eğer materials null ise boş dizi döndür
             ],
         ]);
     }
