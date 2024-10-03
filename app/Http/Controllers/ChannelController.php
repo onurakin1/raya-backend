@@ -33,7 +33,8 @@ class ChannelController extends Controller
         try {
             $user = $request->user();
             $userId = $user->id;
-            
+    
+            // Fonksiyon: Oda kodu oluşturma
             function generateCode()
             {
                 $time = time() / 15;
@@ -73,8 +74,13 @@ class ChannelController extends Controller
             // Tur bilgilerini güncelleme
             $tour = TourDetails::where('tour_id', $request->tour_id)->first();
             $user = User::where('id', $userId)->first();
+    
             if ($tour) {
-                $tour->voice_rooms = [
+                // Mevcut voice_rooms verisini kontrol et
+                $existingRooms = json_decode($tour->voice_rooms, true) ?? [];
+    
+                // Yeni odayı mevcut voice_rooms array'ine ekle
+                $newRoom = [
                     'id' => $createRoom->id,
                     'name' => $createRoom->name,
                     'expires_time' => $createRoom->expiration_time,
@@ -83,13 +89,18 @@ class ChannelController extends Controller
                         'photo_link' => $user->photo_link
                     ]
                 ];
+    
+                // Mevcut voice_rooms array'ine yeni odayı ekle
+                $existingRooms[] = $newRoom;
+    
+                // Güncellenmiş voice_rooms dizisini kaydet
+                $tour->voice_rooms = json_encode($existingRooms);
                 $tour->save();
             }
     
             return response()->json([
                 'success' => true,
                 'message' => 'Channel created successfully!',
-              
                 'data' => $createRoom
             ], 201);
         } catch (\Exception $e) {
@@ -99,6 +110,7 @@ class ChannelController extends Controller
             ], 500);
         }
     }
+    
     
     public function generateRoomCode(Request $request)
     {
