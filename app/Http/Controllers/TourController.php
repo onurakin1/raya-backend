@@ -73,6 +73,7 @@ class TourController extends Controller
     {
         $id = $request->query('id');
         $tour = Tours::where('id', $id)->first();
+        $languageType = $request->header('Accept-Language');
         // Eğer tur bulunamazsa hata mesajı döndür
         if (!$tour) {
             return response()->json([
@@ -82,19 +83,25 @@ class TourController extends Controller
             ], 404); // 404 Not Found
         }
 
+        $tourNames = json_decode($tour->name, true);
+        $tourName = $contents[$languageType] ?? $tourNames['en'];
+
+
         // İlişkili detayları al
         $details = $tour->details;
 
+        $tourDescriptions = json_decode(optional($details->first())->description, true);
+        $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'];
         // Tur bilgilerini ve detayları JSON formatında döndür
         return response()->json([
             'status' => true,
             'message' => 'The operation has been successfully completed.',
             'data' => [
                 'id' => $tour->id,
-                'title' => $tour->name,
+                'title' => $tourName,
 
                 'code' => $tour->tour_code, // Eğer tour_code'yu da dahil etmek istiyorsanız
-                'description' => optional($details->first())->description,
+                'description' => $tourDescription,
                 'date' => optional($details->first())->tour_dates,
                 'materials' => optional($details->first())->materials ?? [], // Eğer materials null ise boş dizi döndür
             ],
