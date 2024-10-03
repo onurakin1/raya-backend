@@ -6,22 +6,40 @@ use App\Models\Intro;
 use App\Http\Requests\StoreIntroRequest;
 use App\Http\Requests\UpdateIntroRequest;
 use App\Models\Agreements;
-
+use Illuminate\Http\Request;
 class AgreementsController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Veritabanından tüm verileri al
+        $languageType = $request->header('Accept-Language');
+
         $agreements = Agreements::all();
+
+        // Veriyi istediğin formata dönüştür
+        $formattedAgreements = $agreements->map(function ($agreement) use ($languageType) {
+            // description alanını JSON'dan diziye dönüştür
+            $titles = json_decode($agreement->title, true);
+            $descriptions = json_decode($agreement->description, true);
+    
+            // Dil bilgisine göre açıklamayı al
+            $title = $titles[$languageType] ?? $titles['en'] ?? '';
+    
+            return [
+                'id' => $agreement->id,
+                'title' => $title,
+                'description' => $descriptions
+               // Kullanıcının diline göre açıklamayı ekle
+            ];
+        });
 
         // Dönüştürülmüş veriyi JSON olarak döndür
         return response()->json([
             'status' => true,
             'message' => 'The operation has been successfully completed.',
-            'data' => $agreements
+            'data' => $formattedAgreements
         ]);
     }
 
