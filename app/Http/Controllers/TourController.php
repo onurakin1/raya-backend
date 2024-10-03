@@ -147,10 +147,12 @@ class TourController extends Controller
                 $tourDescriptions = json_decode(optional($tourDetails)->description, true);
                 $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
     
+                $tourRooms = json_decode(optional($tourDetails)->voice_rooms, true);
+                $tourMaterials = json_decode(optional($tourDetails)->materials, true);
                 // Diğer detaylar (tarih, materyaller, odalar)
                 $tourDate = optional($tourDetails)->tour_dates ?? 'N/A'; // Eğer tarih yoksa 'N/A' göster
-                $tourMaterials = optional($tourDetails)->materials ?? []; // Eğer materyaller null ise boş dizi
-                $tourRooms = optional($tourDetails)->voice_rooms ?? []; // Eğer odalar null ise boş dizi
+                $tourMaterial = $tourMaterials ?? []; // Eğer materyaller null ise boş dizi
+                $tourRoom = $tourRooms ?? []; // Eğer odalar null ise boş dizi
     
                 return [
                     'id' => $tour->id,
@@ -158,8 +160,8 @@ class TourController extends Controller
                     'name' => $tourName, // Dile göre ayarlanmış tur adı
                     'description' => $tourDescription, // Dile göre ayarlanmış açıklama
                     'date' => $tourDate, // Tarih bilgisi
-                    'materials' => $tourMaterials, // Materyal bilgisi
-                    'rooms' => $tourRooms, // Oda bilgisi
+                    'materials' => $tourMaterial, // Materyal bilgisi
+                    'rooms' => $tourRoom, // Oda bilgisi
                 ];
             }),
         ]);
