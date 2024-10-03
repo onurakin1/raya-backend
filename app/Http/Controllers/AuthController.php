@@ -27,90 +27,7 @@ class AuthController extends Controller
             'full_name' => 'required|max:255',
             'password' => 'required|min:6'
         ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'last_name' => $request->last_name,
-            'phone_number' => $request->phone_number,
-            'email' => $request->full_name,
-            'photo_link' => $request->photo_link,
-            'password' =>  $request->password
-        ]);
-
-
-        // $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
-        // $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], Carbon::now()->addMinutes(config('sanctum.rt_expiration')));
-        // Erişim Token süresi ve oluşturulması
-        $accessTokenExpiration = Carbon::now()->addMinutes(config('sanctum.ac_expiration'));
-        $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], $accessTokenExpiration);
-
-        // Yenileme Token süresi ve oluşturulması
-        $refreshTokenExpiration = Carbon::now()->addMinutes(config('sanctum.rt_expiration'));
-        $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], $refreshTokenExpiration);
-
-
-        // 'expires_in' bilgileri (saniye cinsinden)
-        $accessTokenExpiresIn = round(Carbon::now()->diffInSeconds($accessTokenExpiration) / 3600, 2);
-        $refreshTokenExpiresIn = Carbon::now()->diffInSeconds($refreshTokenExpiration) / 3600;
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Transaction successful',
-            'data' => [
-                'access_token' => $accessToken->plainTextToken,
-                'refresh_token' => $refreshToken->plainTextToken,
-                'expires_in' => $accessTokenExpiresIn,
-                'user' => [
-                    'id' => $user->id,
-                    'firstname' => $user->name,
-                    'lastname' => $user->last_name,
-                    'phone_number' =>  $user->phone_number,
-                    'full_name' => $user->full_name,
-                    'photo_link' => $user->photo_link
-                ],
-            ],
-
-
-
-        ], 200);
-        // return [
-        //     'SipPhones' => $accessToken,
-        //     'SipUsers' => $refreshToken,
-        //     'SipDevices' =>  $sipDevices,
-        //     'Sip' => $createdSip
-        // ];
-    }
-
-    function disableEndpoint(Request $request)
-    {
-        $ssh = new SSH2('213.14.229.130');  // Asterisk sunucunuzun IP adresi
-        if (!$ssh->login('root', 'B0ncuk24')) {  // SSH root bilgilerinizi kullanın
-            throw new \Exception('SSH bağlantısı başarısız.');
-        }
-
-        // Endpoint ile ilgili ayarları bulup yorum satırına almak için komut
-        $command = "
-        sed -i '/\\[$request->endpoint\\]/,/^\\[/ { s/^/;/; }' /etc/asterisk/pjsip_custom.conf; 
-        asterisk -rx \"pjsip reload\";  
-    ";
-
-        $ssh->exec($command);
-
-        return "Endpoint $request->endpoint devre dışı bırakıldı.";
-    }
-    public  function login(Request $request)
-    {
-
-        $user = User::where('email', $request->full_name)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response([
-                'message' => 'Bad creds'
-            ], 401);
-        }
-        $rooms = Rooms::where('created_by', $user->id)->first();
-
-
+        $today = Carbon::today();
         // 4 haneli kullanıcı adı oluşturma (rastgele sayı)
         $username = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
 
@@ -126,11 +43,15 @@ class AuthController extends Controller
         // Rastgele 5 haneli bir numara oluşturma (name için)
         $name = 'User-' . $username;
 
-        $today = Carbon::today();
-        $userId = $user->id;
-        $companyToGuides = Company::whereHas('guides', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })->get();
+        $user = User::create([
+            'name' => $request->name,
+            'last_name' => $request->last_name,
+            'phone_number' => $request->phone_number,
+            'email' => $request->full_name,
+            'photo_link' => $request->photo_link,
+            'password' =>  $request->password
+        ]);
+
         $addAsteriskUsers = RoomUsers::create([
             'name' => $username,
             'password' => $password,
@@ -285,6 +206,88 @@ class AuthController extends Controller
         }
 
 
+
+
+
+
+        // $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
+        // $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], Carbon::now()->addMinutes(config('sanctum.rt_expiration')));
+        // Erişim Token süresi ve oluşturulması
+        $accessTokenExpiration = Carbon::now()->addMinutes(config('sanctum.ac_expiration'));
+        $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], $accessTokenExpiration);
+
+        // Yenileme Token süresi ve oluşturulması
+        $refreshTokenExpiration = Carbon::now()->addMinutes(config('sanctum.rt_expiration'));
+        $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], $refreshTokenExpiration);
+
+
+        // 'expires_in' bilgileri (saniye cinsinden)
+        $accessTokenExpiresIn = round(Carbon::now()->diffInSeconds($accessTokenExpiration) / 3600, 2);
+        $refreshTokenExpiresIn = Carbon::now()->diffInSeconds($refreshTokenExpiration) / 3600;
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Transaction successful',
+            'data' => [
+                'access_token' => $accessToken->plainTextToken,
+                'refresh_token' => $refreshToken->plainTextToken,
+                'expires_in' => $accessTokenExpiresIn,
+                'user' => [
+                    'id' => $user->id,
+                    'firstname' => $user->name,
+                    'lastname' => $user->last_name,
+                    'phone_number' =>  $user->phone_number,
+                    'full_name' => $user->full_name,
+                    'photo_link' => $user->photo_link
+                ],
+            ],
+        ], 200);
+        // return [
+        //     'SipPhones' => $accessToken,
+        //     'SipUsers' => $refreshToken,
+        //     'SipDevices' =>  $sipDevices,
+        //     'Sip' => $createdSip
+        // ];
+    }
+
+    function disableEndpoint(Request $request)
+    {
+        $ssh = new SSH2('213.14.229.130');  // Asterisk sunucunuzun IP adresi
+        if (!$ssh->login('root', 'B0ncuk24')) {  // SSH root bilgilerinizi kullanın
+            throw new \Exception('SSH bağlantısı başarısız.');
+        }
+
+        // Endpoint ile ilgili ayarları bulup yorum satırına almak için komut
+        $command = "
+        sed -i '/\\[$request->endpoint\\]/,/^\\[/ { s/^/;/; }' /etc/asterisk/pjsip_custom.conf; 
+        asterisk -rx \"pjsip reload\";  
+    ";
+
+        $ssh->exec($command);
+
+        return "Endpoint $request->endpoint devre dışı bırakıldı.";
+    }
+    public  function login(Request $request)
+    {
+
+        $user = User::where('email', $request->full_name)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response([
+                'message' => 'Bad creds'
+            ], 401);
+        }
+        $rooms = Rooms::where('created_by', $user->id)->first();
+        $isabel_user = Rooms::where('created_by', $user->id)->first();
+
+
+
+     
+        $userId = $user->id;
+        $companyToGuides = Company::whereHas('guides', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->get();
+  
         // $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
         // $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], Carbon::now()->addMinutes(config('sanctum.rt_expiration')));
 
@@ -324,8 +327,8 @@ class AuthController extends Controller
                     'username' => $user->email,
                     'photo_link' => $user->photo_link ?: "",
                     'isabel' => [
-                        'username' => $username,
-                        'password' => $password,
+                        'username' => $isabel_user->username,
+                        'password' => $isabel_user->password,
                         'link' => "https://pbx.limonisthost.com/"
                     ],
                     'room' => $rooms,
