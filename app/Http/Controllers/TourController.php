@@ -117,13 +117,13 @@ class TourController extends Controller
     {
         $user = $request->user();
         $userId = $user->id;
-
-
+        $languageType = $request->header('Accept-Language');
+    
         // Kullanıcıya atanmış turları al
         $tours = Tours::whereHas('guides', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with('details')->get();
-
+    
         // Eğer kullanıcıya atanmış tur yoksa hata mesajı döndür
         if ($tours->isEmpty()) {
             return response()->json([
@@ -132,26 +132,39 @@ class TourController extends Controller
                 'data' => null
             ], 404); // 404 Not Found
         }
-
+    
         // Turları ve detaylarını JSON formatında döndür
         return response()->json([
             'status' => true,
             'message' => 'Tours retrieved successfully.',
-            'data' => $tours->map(function ($tour) {
+            'data' => $tours->map(function ($tour) use ($languageType) {
+                // Tur adı için dil kontrolü
+                $tourNames = json_decode($tour->name, true);
+                $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? '';
+    
+                // Detay açıklaması için dil kontrolü
+                $tourDetails = $tour->details->first();
+                $tourDescriptions = json_decode(optional($tourDetails)->description, true);
+                $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
+    
+                // Diğer detaylar (tarih, materyaller, odalar)
+                $tourDate = optional($tourDetails)->tour_dates ?? 'N/A'; // Eğer tarih yoksa 'N/A' göster
+                $tourMaterials = optional($tourDetails)->materials ?? []; // Eğer materyaller null ise boş dizi
+                $tourRooms = optional($tourDetails)->voice_rooms ?? []; // Eğer odalar null ise boş dizi
+    
                 return [
                     'id' => $tour->id,
                     'code' => $tour->tour_code,
-                    'name' => $tour->name,
-
-                    'description' => optional($tour->details->first())->description,
-                    'date' => optional($tour->details->first())->tour_dates,
-                    'materials' => optional($tour->details->first())->materials ?? [],
-                    'rooms' => optional($tour->details->first())->voice_rooms ?? [],
-         
+                    'name' => $tourName, // Dile göre ayarlanmış tur adı
+                    'description' => $tourDescription, // Dile göre ayarlanmış açıklama
+                    'date' => $tourDate, // Tarih bilgisi
+                    'materials' => $tourMaterials, // Materyal bilgisi
+                    'rooms' => $tourRooms, // Oda bilgisi
                 ];
             }),
         ]);
     }
+    
 
     public function show($code) {}
 
