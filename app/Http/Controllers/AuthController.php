@@ -60,15 +60,16 @@ class AuthController extends Controller
                 'access_token' => $accessToken->plainTextToken,
                 'refresh_token' => $refreshToken->plainTextToken,
                 'expires_in' => $accessTokenExpiresIn,
+                'user' => [
+                    'id' => $user->id,
+                    'firstname' => $user->name,
+                    'lastname' => $user->last_name,
+                    'phone_number' =>  $user->phone_number,
+                    'full_name' => $user->full_name,
+                    'photo_link' => $user->photo_link
+                ],
             ],
-            'user' => [
-                'id' => $user->id,
-                'firstname' => $user->name,
-                'lastname' => $user->last_name,
-                'phone_number' =>  $user->phone_number,
-                'full_name' => $user->full_name,
-                'photo_link' => $user->photo_link
-            ],
+
 
 
         ], 200);
