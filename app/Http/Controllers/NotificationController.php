@@ -25,11 +25,11 @@ class NotificationController extends Controller
             $userId = $user->id;
             $languageType = $request->header('Accept-Language');
 
-            $notification_settings = NotificationSettings::whereHas('status', function ($query) use ($userId) {
-                $query->where('user_id', $userId);
+            $notification_settings = NotificationSettings::whereHas('userNotificationSettings', function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->whereIn('status', [0, 1]); // status 0 veya 1 olan kayıtlar
             })->get();
-            
-            $notification_settings = NotificationSettings::all();
+
     
             // Sadece id, title ve is_active (status) alanlarını içeren yeni bir yapı oluştur
             $filtered_data = $notification_settings->map(function($item) {
