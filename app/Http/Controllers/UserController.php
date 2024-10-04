@@ -29,7 +29,9 @@ class UserController extends Controller
         // Validasyon
         $validatedData = $request->validate([
             'file' => 'nullable|mimes:jpg,png,pdf|max:2048', // nullable ile isteğe bağlı
-            'name' => 'nullable|string|max:255', // nullable ile isteğe bağlı
+            'firstname' => 'nullable|string|max:255', // nullable ile isteğe bağlı
+            'lastname' => 'nullable|string|max:255', // nullable ile isteğe bağlı
+            'phone_number' => 'nullable|string|max:255', // nullable ile isteğe bağlı
         ]);
 
         // Kullanıcıyı bul (örneğin, kimliğiyle)
