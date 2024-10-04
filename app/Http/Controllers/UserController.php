@@ -21,11 +21,12 @@ class UserController extends Controller
 
         return response()->json($company);
     }
-    public function update(Request $request, $id)
+    public function updateUser(Request $request)
     {
         try {
             // Find the user by ID
-            $user = User::find($id);
+        
+            $user = $request->user();
             $languageType = $request->header('Accept-Language');
             
             // Check if the user exists
@@ -86,20 +87,48 @@ class UserController extends Controller
             ], 500); // 500 sunucu hatası kodu
         }
     }
-    
-    public function destroy(Request $request, $id)
+    public function deleteUser(Request $request)
     {
 
         try{
-            $user = User::findOrFail($id);
+     
             $languageType = $request->header('Accept-Language');
 
-            $user->delete();
+            $request->user()->delete();
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'status' => true,
                 'message' => $successMessage,
-                'data' => $user,
+      
+                
+            ]);
+        }
+        catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
+      
+    }
+    public function destroy(Request $request)
+    {
+
+        try{
+     
+            $languageType = $request->header('Accept-Language');
+
+            $request->user()->delete();
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage,
+      
+
             ]);
         }
         catch (\Exception $e) {

@@ -50,7 +50,7 @@ class MenuItemsController extends Controller
                 // Menü başlıklarında dil kontrolü
                 $menuTitles = json_decode($item->title, true);
                 $menuName = $menuTitles[$languageType] ?? $menuTitles['en'] ?? ''; // Eğer dilde değer yoksa, İngilizceyi varsayılan alıyoruz
-        
+            
                 return [
                     'id' => $item->id,
                     'name' => $menuName,  // Dil tercihi ile ayarlanmış menü adı
@@ -61,7 +61,7 @@ class MenuItemsController extends Controller
                     'type' => $item->type,
                     'switch_value' => 0
                 ];
-            });
+            })->sortBy('order_number');
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'status' => true,

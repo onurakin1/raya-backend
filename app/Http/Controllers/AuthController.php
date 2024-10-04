@@ -24,11 +24,11 @@ class AuthController extends Controller
 {
     public  function register(Request $request)
     {
-        try {
+   
             $languageType = $request->header('Accept-Language');
             $data = $request->validate([
                 'name' => 'required|max:255',
-                'full_name' => 'required|max:255',
+                'username' => 'required|max:255',
                 'password' => 'required|min:6'
             ]);
             $today = Carbon::today();
@@ -54,7 +54,7 @@ class AuthController extends Controller
                 'name' => $request->name,
                 'last_name' => $request->last_name,
                 'phone_number' => $request->phone_number,
-                'email' => $request->full_name,
+                'email' => $request->username,
                 'photo_link' => $request->photo_link,
                 'password' =>  $request->password
             ]);
@@ -258,16 +258,7 @@ class AuthController extends Controller
                     ],
                 ],
             ], 200);
-        } catch (\Exception $e) {
-            // Dil bilgisine göre hata mesajını ayarla
-            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
-
-            // Hata durumunda JSON yanıtı döndür
-            return response()->json([
-                'status' => false,
-                'message' => $errorMessage, // Hata mesajı
-            ], 500); // 500 sunucu hatası kodu
-        }
+      
     }
 
     function disableEndpoint(Request $request)
