@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\NotificationSettings;
 use App\Models\UserNotificationSettings;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
 {
@@ -25,10 +25,11 @@ class NotificationController extends Controller
             $userId = $user->id;
             $languageType = $request->header('Accept-Language');
 
-            $notification_settings = NotificationSettings::whereHas('status', function ($query) use ($userId) {
-                $query->where('user_id', $userId);
-            })->get();
-            
+            $notification_settings = DB::table('notification_settings')
+            ->join('user_notification_settings', 'notification_settings.id', '=', 'user_notification_settings.notification_setting_id')
+            ->where('user_notification_settings.user_id', $userId)
+            ->select('notification_settings.*', 'user_notification_settings.status') // İhtiyacınıza göre hangi alanları seçeceğinizi ayarlayın
+            ->get();
        
     
             // Sadece id, title ve is_active (status) alanlarını içeren yeni bir yapı oluştur
