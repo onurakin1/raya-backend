@@ -7,6 +7,7 @@ use App\Http\Requests\StoreIntroRequest;
 use App\Http\Requests\UpdateIntroRequest;
 use App\Models\Agreements;
 use Illuminate\Http\Request;
+
 class AgreementsController extends Controller
 {
     /**
@@ -14,17 +15,17 @@ class AgreementsController extends Controller
      */
     public function index(Request $request)
     {
-        try{
+        try {
             $languageType = $request->header('Accept-Language');
 
             $agreements = Agreements::all();
-    
+
             // Veriyi istediğin formata dönüştür
             $formattedAgreements = $agreements->map(function ($agreement) use ($languageType) {
                 // description alanını JSON'dan diziye dönüştür
                 $titles = json_decode($agreement->title, true);
                 $descriptions = json_decode($agreement->description, true);
-        
+
                 // Dil bilgisine göre açıklamayı al
                 $title = $titles[$languageType] ?? $titles['en'] ?? '';
                 $description = $descriptions[$languageType] ?? $titles['en'] ?? '';
@@ -32,7 +33,7 @@ class AgreementsController extends Controller
                     'id' => $agreement->id,
                     'title' => $title,
                     'description' => $description
-                   // Kullanıcının diline göre açıklamayı ekle
+                    // Kullanıcının diline göre açıklamayı ekle
                 ];
             });
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
@@ -42,11 +43,10 @@ class AgreementsController extends Controller
                 'message' =>  $successMessage,
                 'data' => $formattedAgreements
             ]);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             // Dil bilgisine göre hata mesajını ayarla
             $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
-    
+
             // Hata durumunda JSON yanıtı döndür
             return response()->json([
                 'status' => false,

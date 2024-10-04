@@ -355,11 +355,12 @@ class ChannelController extends Controller
                 'status' => true,
                 'message' =>  $successMessage,
                 'data' => [
-                    'name' => $roomUsers->name,
+                    'username' => $roomUsers->name,
+                    'password' => $roomUsers->password,
                     'role' => $roomUsers->role,
                     'created_at' => $roomUsers->created_at,
                     'is_active' => $roomUsers->is_active,
-                    'link' => "https://pbx.limonisthost.com/", // link ekleme
+                    'url' => "https://pbx.limonisthost.com/", // link ekleme
                 ],
             ]);
         }

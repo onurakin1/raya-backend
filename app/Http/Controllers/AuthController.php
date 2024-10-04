@@ -240,7 +240,12 @@ class AuthController extends Controller
                         'lastname' => $user->last_name,
                         'phone_number' =>  $user->phone_number,
                         'full_name' => $user->full_name,
-                        'photo_link' => $user->photo_link
+                        'photo_link' => $user->photo_link,
+                        'isabel' => [
+                            'username' => $addAsteriskUsers->name,
+                            'password' => $addAsteriskUsers->password,
+                            'url' => "https://pbx.limonisthost.com/"
+                        ],
                     ],
                 ],
             ], 200);
@@ -285,7 +290,7 @@ class AuthController extends Controller
                 ], 401);
             }
             $rooms = Rooms::where('created_by', $user->id)->first();
-            $isabel_user = Rooms::where('created_by', $user->id)->first();
+            $isabel_user = RoomUsers::where('user_id', $user->id)->first();
 
 
 
@@ -336,7 +341,7 @@ class AuthController extends Controller
                         'isabel' => [
                             'username' => $isabel_user->username,
                             'password' => $isabel_user->password,
-                            'link' => "https://pbx.limonisthost.com/"
+                            'url' => "https://pbx.limonisthost.com/"
                         ],
                         'room' => $rooms,
                         'company' => $companyToGuides
