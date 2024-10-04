@@ -73,7 +73,7 @@ class MenuItemsController extends Controller
                         'lastname' => $user->last_name,
                         'phone_number' => $user->phone_number,
                         'username' => $user->email,
-                        'photo_link' => $user->photo_link ?: "",  // Boşsa "" olarak dönüyor
+                        'photo_link' => 'https://sip.limonist.dev/uploads/' . $user->photo_link ?: "",  // Boşsa "" olarak dönüyor
                         'room' => $rooms,
                           // Dil desteği eklenmiş menü öğeleri
         

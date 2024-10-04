@@ -358,7 +358,7 @@ class AuthController extends Controller
                         'lastname' => $user->last_name,
                         'phone_number' =>  $user->phone_number,
                         'username' => $user->email,
-                        'photo_link' => $user->photo_link ?: "",
+                        'photo_link' =>'https://sip.limonist.dev/uploads/' . $user->photo_link ?: "",
                         'isabel' => [
                             'username' => $isabel_user->username,
                             'password' => $isabel_user->password,

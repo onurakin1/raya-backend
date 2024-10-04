@@ -90,7 +90,7 @@ class ChannelController extends Controller
                     'guide' => [
                         'id' => $user->id,
                         'full_name' => $user->email,
-                        'photo_link' => $user->photo_link
+                        'photo_link' => 'https://sip.limonist.dev/uploads/' . $user->photo_link ?: "",
                     ]
                 ];
     
