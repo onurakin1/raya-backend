@@ -36,7 +36,7 @@ Route::apiResource('company', CompanyController::class);
 Route::apiResource('user', UserController::class);
 Route::post('/user-update', [UserController::class, 'updateUser'])->middleware('auth:sanctum');
 Route::delete('/user-delete', [UserController::class, 'deleteUser'])->middleware('auth:sanctum');
-Route::get('/notification-settings', [NotificationController::class, 'index']);
+Route::get('/notification-settings', [NotificationController::class, 'NotificationSettings'])->middleware('auth:sanctum');
 Route::post('/notification-settings-status', [NotificationController::class, 'StatusNotificationSetting'])->middleware('auth:sanctum');
 Route::post('/notifications', [NotificationController::class, 'Notification'])->middleware('auth:sanctum');
 Route::post('/disable-notifications', [NotificationController::class, 'DisableNotification'])->middleware('auth:sanctum');

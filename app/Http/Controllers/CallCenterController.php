@@ -60,39 +60,61 @@ class CallCenterController extends Controller
     {
         try {
             $languageType = $request->header('Accept-Language');
-            $today = Carbon::today();
+            $today = Carbon::now(); // Tarihi ve saati şu anki zaman olarak ayarladık
             $user = $request->user();
             $userId = $user->id;
             $content = $request->content;
-
+    
+            // Kullanıcıya ait kayıt kontrolü
+            $existingMessages = CallCenter::where('user_id', $userId)->first();
+    
+            // Eğer ilgili user_id için bir kayıt yoksa, belirtilen objeleri ekle
+            if (!$existingMessages) {
+                // Önceden tanımlanan iki mesajı ekle
+                CallCenter::insert([
+                    [
+                        'user_id' => $userId,
+                        'content' => 'Merhaba, size nasıl yardımcı olabiliriz ?',
+                        'created_at' => $today,
+                        'is_active' => true,
+                        'sender_type' => 2 // Gönderen tipi 2
+                    ],
+                    [
+                        'user_id' => $userId,
+                        'content' => 'test',
+                        'created_at' => $today,
+                        'is_active' => true,
+                        'sender_type' => 1 // Gönderen tipi 1
+                    ],
+                ]);
+            }
+    
+            // Kullanıcının gönderdiği mesajı kaydet
             $createdMessage = CallCenter::create([
                 'user_id' => $userId,
                 'content' => $content,
                 'created_at' => $today,
                 'is_active' => true,
-                'sender_type' => 2
-
+                'sender_type' => 1 // Kullanıcının kendi mesajı
             ]);
+    
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'success' => true,
-                'message' =>  $successMessage,
-
+                'message' => $successMessage,
                 'data' => [
                     'message' =>  [
                         'id' => $createdMessage->id,
                         'content' => $createdMessage->content,
                         'type' => $createdMessage->sender_type,
-                        'date' => $createdMessage->created_at
+                        'date' => $createdMessage->created_at->format('d.m.Y H:i:s') // Formatla
                     ]
                 ]
-
-
             ], 201);
         } catch (\Exception $e) {
             // Dil bilgisine göre hata mesajını ayarla
             $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
-    
+            
             // Hata durumunda JSON yanıtı döndür
             return response()->json([
                 'status' => false,
@@ -100,4 +122,5 @@ class CallCenterController extends Controller
             ], 500); // 500 sunucu hatası kodu
         }
     }
+    
 }

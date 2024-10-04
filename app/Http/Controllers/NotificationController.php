@@ -18,9 +18,10 @@ class NotificationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function NotificationSettings(Request $request)
     {
         try{
+            $user = $request->user();
             $languageType = $request->header('Accept-Language');
             $notification_settings = NotificationSettings::all();
     
