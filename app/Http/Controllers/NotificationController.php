@@ -65,33 +65,44 @@ class NotificationController extends Controller
 
     public function StatusNotificationSetting(Request $request)
     {
-        try{
+        try {
             $languageType = $request->header('Accept-Language');
             $user = $request->user();
             $status = $request->status;
             $id = $request->id;
             $today = Carbon::today();
-            $notification_settings_status = UserNotificationSettings::create([
-                'user_id' => $user->id,
-                'notification_setting_id' => $id,
-                'status' => $status == true ? 1 : 0,
-                'created_at' => $today,
-                'updated_at' => $today,
-            ]);
+    
+            // Belirtilen notification_setting_id için mevcut kaydı kontrol et
+            $noti = UserNotificationSettings::where('user_id', $user->id)
+                        ->where('notification_setting_id', $id)
+                        ->first();
+    
+            if ($noti) {
+                // Eğer kayıt varsa, durumu güncelle
+                $noti->status = $status ? 1 : 0;
+                $noti->updated_at = $today;
+                $noti->save();
+            } else {
+                // Eğer kayıt yoksa, yeni kayıt oluştur
+                $noti = UserNotificationSettings::create([
+                    'user_id' => $user->id,
+                    'notification_setting_id' => $id,
+                    'status' => $status ? 1 : 0,
+                    'created_at' => $today,
+                    'updated_at' => $today,
+                ]);
+            }
     
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'status' => true,
                 'message' => $successMessage,
                 'data' => [
-                    'notification_id' => $notification_settings_status->notification_setting_id,
-                    'status' =>(bool) $notification_settings_status->status,
-                    
-    
+                    'notification_id' => $noti->notification_setting_id,
+                    'status' => (bool) $noti->status,
                 ]
             ]);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             // Dil bilgisine göre hata mesajını ayarla
             $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
     
@@ -101,8 +112,8 @@ class NotificationController extends Controller
                 'message' => $errorMessage, // Hata mesajı
             ], 500); // 500 sunucu hatası kodu
         }
-
     }
+    
 
 
     public function Notification(Request $request)
