@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
+use App\Models\Rooms;
+use App\Models\RoomUsers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Carbon\Carbon;
@@ -28,52 +31,87 @@ class UserController extends Controller
             'file' => 'nullable|mimes:jpg,png,pdf|max:2048', // nullable ile isteğe bağlı
             'name' => 'nullable|string|max:255', // nullable ile isteğe bağlı
         ]);
-    
+
         // Kullanıcıyı bul (örneğin, kimliğiyle)
         $user = $request->user();
-    
+
+        $asteriskUsers = RoomUsers::where('user_id', $user->id)->first();
+        $rooms = Rooms::where('created_by', $user->id)->first();
+        $userId = $user->id;
+        $companyToGuide = Company::whereHas('guides', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->first(); // Koleksiyonun ilk elemanını al
+        
+        if ($companyToGuide) {
+            $company = [
+                'id' => $companyToGuide->id,
+                'name' => $companyToGuide->name,
+            ];
+        } else {
+            $company = null; // Eğer hiç şirket yoksa null dönebilir
+        }
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found.'], 404);
         }
-    
+
         // Dosya yükleme işlemi
         if ($request->hasFile('file')) {
             // Dosya yükleme
-            $fileName = time().'_'.$request->file('file')->getClientOriginalName();
+            $fileName = time() . '_' . $request->file('file')->getClientOriginalName();
             $filePath = $request->file('file')->storeAs('images', $fileName, 'public');
-    
+
             // Kullanıcının profil URL'sini güncelle
-            $user->profile_url = $filePath;
+            $user->photo_link = $filePath;
         }
-    
+
         // Eğer name alanı varsa, kullanıcı adını güncelle
-        if (isset($validatedData['name'])) {
-            $user->name = $validatedData['name'];
+        if (isset($validatedData['firstname'])) {
+            $user->name = $validatedData['firstname'];
         }
-    
+
+        if (isset($validatedData['lastname'])) {
+            $user->last_name = $validatedData['lastname'];
+        }
+
+        if (isset($validatedData['phone_number'])) {
+            $user->phone_number = $validatedData['phone_number'];
+        }
+
         // Kullanıcıyı güncelle
         $user->save();
-    
+
         // Başarılı yanıt döndür
         return response()->json([
             'success' => true,
             'message' => 'Profile updated successfully.',
             'data' => [
-                'filePath' => $filePath ?? null, // Yüklenen dosya yolu
-                'name' => $user->name, // Güncellenmiş kullanıcı adı
-                'profile_url' => $user->profile_url // Güncellenmiş profil URL'si
+                'id' => $user->id,
+                'firstname' => $user->name,
+                'lastname' => $user->last_name,
+                'phone_number' => $user->phone_number,
+                'username' => $user->email,
+                'photo_link' => $user->photo_link ?: "",
+                'room' => $rooms,
+           
+
+              'isabel' => [
+                  'username' => $asteriskUsers->name,
+                  'password' => $asteriskUsers->password,
+                  'url' => "pbx.limonisthost.com"
+              ],
+              'company' => $company,
             ]
         ]);
     }
-    
-    
-    
-    
+
+
+
+
     public function deleteUser(Request $request)
     {
 
-        try{
-     
+        try {
+
             $languageType = $request->header('Accept-Language');
 
             $request->user()->delete();
@@ -81,11 +119,10 @@ class UserController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => $successMessage,
-      
-                
+
+
             ]);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             // Dil bilgisine göre hata mesajını ayarla
             $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
 
@@ -95,13 +132,12 @@ class UserController extends Controller
                 'message' => $errorMessage, // Hata mesajı
             ], 500); // 500 sunucu hatası kodu
         }
-      
     }
     public function destroy(Request $request)
     {
 
-        try{
-     
+        try {
+
             $languageType = $request->header('Accept-Language');
 
             $request->user()->delete();
@@ -109,11 +145,10 @@ class UserController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => $successMessage,
-      
+
 
             ]);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             // Dil bilgisine göre hata mesajını ayarla
             $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
 
@@ -123,6 +158,5 @@ class UserController extends Controller
                 'message' => $errorMessage, // Hata mesajı
             ], 500); // 500 sunucu hatası kodu
         }
-      
     }
 }
