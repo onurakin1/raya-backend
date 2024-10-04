@@ -46,25 +46,15 @@ class UserController extends Controller
             }
     
             // Check if a file is uploaded for profile_url
-            if ($request->hasFile('profile_url')) {
-                $file = $request->file('profile_url');
-    
-                // Validate that the file is an image
-                $request->validate([
-                    'profile_url' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // max size 2MB
-                ]);
-    
-                // Define the storage path for the image
-                $destinationPath = 'uploads/profile_images';
-    
-                // Create a unique file name for the image
-                $fileName = time() . '.' . $file->getClientOriginalExtension();
-    
-                // Move the image to the specified path
-                $file->move(public_path($destinationPath), $fileName);
-    
-                // Save the profile image path in the input array
-                $input['profile_url'] = $destinationPath . '/' . $fileName;
+            $request->validate([
+                'file' => 'required|mimes:jpg,png,pdf|max:2048',
+            ]);
+        
+            if ($request->file()) {
+                $fileName = time().'_'.$request->file->getClientOriginalName();
+                $filePath = $request->file('file')->storeAs('images', $fileName, 'public');
+        
+                return response()->json(['success'=>'File uploaded successfully', 'filePath' => $filePath]);
             }
     
             // Update the user with the input data

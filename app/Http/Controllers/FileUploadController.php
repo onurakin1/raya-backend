@@ -14,11 +14,15 @@ class FileUploadController extends Controller
             'file' => 'required|mimes:jpg,png,pdf|max:2048',
         ]);
     
-        $file = $request->file('file');
-        $path = $file->store('uploads', 'public');
+        if ($request->file()) {
+            $fileName = time().'_'.$request->file->getClientOriginalName();
+            $filePath = $request->file('file')->storeAs('images', $fileName, 'public');
+    
+            return response()->json(['success'=>'File uploaded successfully', 'filePath' => $filePath]);
+        }
     
         // Additional logic (e.g., storing file information in the database)
-    
-        return "File uploaded successfully!";
+
+      
     }
 }
