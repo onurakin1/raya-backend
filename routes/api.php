@@ -40,6 +40,7 @@ Route::post('/notifications', [NotificationController::class, 'Notification'])->
 Route::post('/disable-notifications', [NotificationController::class, 'DisableNotification'])->middleware('auth:sanctum');
 Route::get('/agreements', [AgreementsController::class, 'index']);
 Route::get('/tour-registration', [TourController::class, 'tourRegistration']);
+Route::get('/account-check', [TourController::class, 'AccountCheck']);
 Route::get('/tour-detail', [TourController::class, 'tourDetail']);
 Route::post('/tours', [TourController::class, 'getAllToursToGuide'])->middleware('auth:sanctum');
 Route::get('/app-version-control', [AppControlsController::class, 'checkVersion']);

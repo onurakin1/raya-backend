@@ -14,33 +14,45 @@ class AgreementsController extends Controller
      */
     public function index(Request $request)
     {
-        $languageType = $request->header('Accept-Language');
+        try{
+            $languageType = $request->header('Accept-Language');
 
-        $agreements = Agreements::all();
-
-        // Veriyi istediğin formata dönüştür
-        $formattedAgreements = $agreements->map(function ($agreement) use ($languageType) {
-            // description alanını JSON'dan diziye dönüştür
-            $titles = json_decode($agreement->title, true);
-            $descriptions = json_decode($agreement->description, true);
+            $agreements = Agreements::all();
     
-            // Dil bilgisine göre açıklamayı al
-            $title = $titles[$languageType] ?? $titles['en'] ?? '';
+            // Veriyi istediğin formata dönüştür
+            $formattedAgreements = $agreements->map(function ($agreement) use ($languageType) {
+                // description alanını JSON'dan diziye dönüştür
+                $titles = json_decode($agreement->title, true);
+                $descriptions = json_decode($agreement->description, true);
+        
+                // Dil bilgisine göre açıklamayı al
+                $title = $titles[$languageType] ?? $titles['en'] ?? '';
+        
+                return [
+                    'id' => $agreement->id,
+                    'title' => $title,
+                    'description' => $descriptions
+                   // Kullanıcının diline göre açıklamayı ekle
+                ];
+            });
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            // Dönüştürülmüş veriyi JSON olarak döndür
+            return response()->json([
+                'status' => true,
+                'message' =>  $successMessage,
+                'data' => $formattedAgreements
+            ]);
+        }
+        catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
     
-            return [
-                'id' => $agreement->id,
-                'title' => $title,
-                'description' => $descriptions
-               // Kullanıcının diline göre açıklamayı ekle
-            ];
-        });
-
-        // Dönüştürülmüş veriyi JSON olarak döndür
-        return response()->json([
-            'status' => true,
-            'message' => 'The operation has been successfully completed.',
-            'data' => $formattedAgreements
-        ]);
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
     }
 
     /**

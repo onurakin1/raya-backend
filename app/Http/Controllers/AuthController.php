@@ -22,232 +22,238 @@ class AuthController extends Controller
 {
     public  function register(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|max:255',
-            'full_name' => 'required|max:255',
-            'password' => 'required|min:6'
-        ]);
-        $today = Carbon::today();
-        // 4 haneli kullanıcı adı oluşturma (rastgele sayı)
-        $username = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        try {
+            $languageType = $request->header('Accept-Language');
+            $data = $request->validate([
+                'name' => 'required|max:255',
+                'full_name' => 'required|max:255',
+                'password' => 'required|min:6'
+            ]);
+            $today = Carbon::today();
+            // 4 haneli kullanıcı adı oluşturma (rastgele sayı)
+            $username = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
 
-        // Şifreyi oluşturacak karakterlerin tanımı
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()';
+            // Şifreyi oluşturacak karakterlerin tanımı
+            $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()';
 
-        // 6 haneli rastgele şifre oluşturma
-        $password = '';
-        for ($i = 0; $i < 6; $i++) {
-            $password .= $characters[rand(0, strlen($characters) - 1)];
-        }
+            // 6 haneli rastgele şifre oluşturma
+            $password = '';
+            for ($i = 0; $i < 6; $i++) {
+                $password .= $characters[rand(0, strlen($characters) - 1)];
+            }
 
-        // Rastgele 5 haneli bir numara oluşturma (name için)
-        $name = 'User-' . $username;
+            // Rastgele 5 haneli bir numara oluşturma (name için)
+            $name = 'User-' . $username;
 
-        $user = User::create([
-            'name' => $request->name,
-            'last_name' => $request->last_name,
-            'phone_number' => $request->phone_number,
-            'email' => $request->full_name,
-            'photo_link' => $request->photo_link,
-            'password' =>  $request->password
-        ]);
-
-        $addAsteriskUsers = RoomUsers::create([
-            'name' => $username,
-            'password' => $password,
-            'role' => 'Guide',
-            'created_at' => $today,
-            'is_active' => true,
-            'user_id' => $user->id
-        ]);
-
-        $sipUsers = SipUsers::create([
-            'extension' => $username,
-            'name' => $name,
-            'voicemail' => 'novm',
-            'ringtimer' => 0,
-        ]);
-
-        $sipPhones = SipButtons::create([
-            'context_id' => 0,
-            'exclude' => 0,
-            'sortorder' => 0,
-            'type' => 'extension',
-            'device' => 'PJSIP/' . $username,
-            'privacy' => null,
-            'label' => $name,
-            'group' => '',
-            'exten' => $username,
-            'email' => '',
-            'context' => 'from-internal',
-            'mailbox' => '',
-            'channel' => '',
-            'queuechannel' => 'Local/' . $username . '@from-queue/n|Penalty=0|MemberName=' . $name . '|StateInterface=PJSIP/' . $username,
-            'extenvoicemail' => '',
-            'queuecontext' => 'from-queue',
-            'server' => '',
-            'cssclass' => '',
-            'autoanswerheader' => '__SIPADDHEADER51=Call-Info: answer-after=0.001',
-            'sip_username' => $username,
-            'sip_password' => $request->password
-        ]);
-
-        $sipDevices = SipDevices::create([
-            'id' => $username,
-            'tech' => 'pjsip',
-            'dial' => 'PJSIP/' . $username,
-            'devicetype' => 'fixed',
-            'user' => $username,
-            'description' => $name
-        ]);
-        $createdSip = [];
-
-        $sipData = [
-            ['keyword' => 'account', 'data' => $username, 'flags' => 39],
-            ['keyword' => 'accountcode', 'data' => '', 'flags' => 15],
-            ['keyword' => 'allow', 'data' => '', 'flags' => 13],
-            ['keyword' => 'allow_subscribe', 'data' => 'yes', 'flags' => 29],
-            ['keyword' => 'authenticate_qualify', 'data' => 'no', 'flags' => 35],
-            ['keyword' => 'callerid', 'data' => 'device <' . $username . '>', 'flags' => 40],
-            ['keyword' => 'callgroup', 'data' => '', 'flags' => 10],
-            ['keyword' => 'context', 'data' => 'from-internal', 'flags' => 4],
-            ['keyword' => 'deny', 'data' => '0.0.0.0/0.0.0.0', 'flags' => 17],
-            ['keyword' => 'dial', 'data' => 'PJSIP/' . $username, 'flags' => 14],
-            ['keyword' => 'direct_media', 'data' => 'no', 'flags' => 36],
-            ['keyword' => 'disallow', 'data' => '', 'flags' => 12],
-            ['keyword' => 'dtls_ca_file', 'data' => '', 'flags' => 23],
-            ['keyword' => 'dtls_cert_file', 'data' => '', 'flags' => 21],
-            ['keyword' => 'dtls_private_key', 'data' => '', 'flags' => 22],
-            ['keyword' => 'dtls_setup', 'data' => 'actpass', 'flags' => 24],
-            ['keyword' => 'dtls_verify', 'data' => 'no', 'flags' => 25],
-            ['keyword' => 'dtmfmode', 'data' => 'rfc2833', 'flags' => 3],
-            ['keyword' => 'ice_support', 'data' => 'no', 'flags' => 19],
-            ['keyword' => 'mailbox', 'data' => $username, 'flags' => 16],
-            ['keyword' => 'max_contacts', 'data' => 1, 'flags' => 32],
-            ['keyword' => 'media_encryption', 'data' => 'no', 'flags' => 26],
-            ['keyword' => 'media_use_received_transport', 'data' => 'no', 'flags' => 37],
-            ['keyword' => 'message_context', 'data' => '', 'flags' => 27],
-            ['keyword' => 'nat', 'data' => 'no', 'flags' => 31],
-            ['keyword' => 'outbound_proxy', 'data' => '', 'flags' => 38],
-            ['keyword' => 'permit', 'data' => '0.0.0.0/0.0.0.0', 'flags' => 18],
-            ['keyword' => 'pickupgroup', 'data' => '', 'flags' => 11],
-            ['keyword' => 'qualifyfreq', 'data' => 60, 'flags' => 7],
-            ['keyword' => 'qualify_timeout', 'data' => 3.0, 'flags' => 34],
-            ['keyword' => 'remove_existing', 'data' => 'no', 'flags' => 33],
-            ['keyword' => 'rtcp_mux', 'data' => 'no', 'flags' => 9],
-            ['keyword' => 'secret', 'data' => $password, 'flags' => 2],
-            ['keyword' => 'sendrpid', 'data' => 'no', 'flags' => 6],
-            ['keyword' => 'stir_shaken', 'data' => 'off', 'flags' => 30],
-            ['keyword' => 'subscribe_context', 'data' => '', 'flags' => 28],
-            ['keyword' => 'transport', 'data' => 'transport-udp', 'flags' => 8],
-            ['keyword' => 'trustrpid', 'data' => 'yes', 'flags' => 5],
-            ['keyword' => 'use_avpf', 'data' => 'no', 'flags' => 20],
-        ];
-
-        // Veritabanına dinamik olarak ekleme işlemi
-        foreach ($sipData as $data) {
-            $sipDevice = Sip::create([
-                'id' => $username,      // Kullanıcının email'i
-                'keyword' => $data['keyword'],
-                'data' => $data['data'],
-                'flags' => $data['flags'],
+            $user = User::create([
+                'name' => $request->name,
+                'last_name' => $request->last_name,
+                'phone_number' => $request->phone_number,
+                'email' => $request->full_name,
+                'photo_link' => $request->photo_link,
+                'password' =>  $request->password
             ]);
 
-            $createdSip[] = $sipDevice;
-        }
+            $addAsteriskUsers = RoomUsers::create([
+                'name' => $username,
+                'password' => $password,
+                'role' => 'Guide',
+                'created_at' => $today,
+                'is_active' => true,
+                'user_id' => $user->id
+            ]);
 
-        $ssh = new SSH2('213.14.229.130'); // Asterisk sunucunuzun IP'sini yazın
-        if (!$ssh->login('root', 'B0ncuk24')) {
-            throw new \Exception('SSH bağlantısı başarısız.');
-        }
+            $sipUsers = SipUsers::create([
+                'extension' => $username,
+                'name' => $name,
+                'voicemail' => 'novm',
+                'ringtimer' => 0,
+            ]);
 
-        $command = "
-    echo \"[$username]\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"type=endpoint\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"context=from-external\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"disallow=all\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"allow=ulaw,alaw\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"auth=auth$username\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"aors=$username\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"transport=transport-udp\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"direct_media=no\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"rtp_symmetric=yes\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"force_rport=yes\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"\" >> /etc/asterisk/pjsip_custom.conf; 
+            $sipPhones = SipButtons::create([
+                'context_id' => 0,
+                'exclude' => 0,
+                'sortorder' => 0,
+                'type' => 'extension',
+                'device' => 'PJSIP/' . $username,
+                'privacy' => null,
+                'label' => $name,
+                'group' => '',
+                'exten' => $username,
+                'email' => '',
+                'context' => 'from-internal',
+                'mailbox' => '',
+                'channel' => '',
+                'queuechannel' => 'Local/' . $username . '@from-queue/n|Penalty=0|MemberName=' . $name . '|StateInterface=PJSIP/' . $username,
+                'extenvoicemail' => '',
+                'queuecontext' => 'from-queue',
+                'server' => '',
+                'cssclass' => '',
+                'autoanswerheader' => '__SIPADDHEADER51=Call-Info: answer-after=0.001',
+                'sip_username' => $username,
+                'sip_password' => $request->password
+            ]);
 
-    # Authentication tanımı
-    echo \"[auth$username]\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"type=auth\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"auth_type=userpass\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"username=$username\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"password=$password\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"\" >> /etc/asterisk/pjsip_custom.conf; 
+            $sipDevices = SipDevices::create([
+                'id' => $username,
+                'tech' => 'pjsip',
+                'dial' => 'PJSIP/' . $username,
+                'devicetype' => 'fixed',
+                'user' => $username,
+                'description' => $name
+            ]);
+            $createdSip = [];
 
-    # AOR tanımı
-    echo \"[$username]\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"type=aor\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"max_contacts=1\" >> /etc/asterisk/pjsip_custom.conf;
+            $sipData = [
+                ['keyword' => 'account', 'data' => $username, 'flags' => 39],
+                ['keyword' => 'accountcode', 'data' => '', 'flags' => 15],
+                ['keyword' => 'allow', 'data' => '', 'flags' => 13],
+                ['keyword' => 'allow_subscribe', 'data' => 'yes', 'flags' => 29],
+                ['keyword' => 'authenticate_qualify', 'data' => 'no', 'flags' => 35],
+                ['keyword' => 'callerid', 'data' => 'device <' . $username . '>', 'flags' => 40],
+                ['keyword' => 'callgroup', 'data' => '', 'flags' => 10],
+                ['keyword' => 'context', 'data' => 'from-internal', 'flags' => 4],
+                ['keyword' => 'deny', 'data' => '0.0.0.0/0.0.0.0', 'flags' => 17],
+                ['keyword' => 'dial', 'data' => 'PJSIP/' . $username, 'flags' => 14],
+                ['keyword' => 'direct_media', 'data' => 'no', 'flags' => 36],
+                ['keyword' => 'disallow', 'data' => '', 'flags' => 12],
+                ['keyword' => 'dtls_ca_file', 'data' => '', 'flags' => 23],
+                ['keyword' => 'dtls_cert_file', 'data' => '', 'flags' => 21],
+                ['keyword' => 'dtls_private_key', 'data' => '', 'flags' => 22],
+                ['keyword' => 'dtls_setup', 'data' => 'actpass', 'flags' => 24],
+                ['keyword' => 'dtls_verify', 'data' => 'no', 'flags' => 25],
+                ['keyword' => 'dtmfmode', 'data' => 'rfc2833', 'flags' => 3],
+                ['keyword' => 'ice_support', 'data' => 'no', 'flags' => 19],
+                ['keyword' => 'mailbox', 'data' => $username, 'flags' => 16],
+                ['keyword' => 'max_contacts', 'data' => 1, 'flags' => 32],
+                ['keyword' => 'media_encryption', 'data' => 'no', 'flags' => 26],
+                ['keyword' => 'media_use_received_transport', 'data' => 'no', 'flags' => 37],
+                ['keyword' => 'message_context', 'data' => '', 'flags' => 27],
+                ['keyword' => 'nat', 'data' => 'no', 'flags' => 31],
+                ['keyword' => 'outbound_proxy', 'data' => '', 'flags' => 38],
+                ['keyword' => 'permit', 'data' => '0.0.0.0/0.0.0.0', 'flags' => 18],
+                ['keyword' => 'pickupgroup', 'data' => '', 'flags' => 11],
+                ['keyword' => 'qualifyfreq', 'data' => 60, 'flags' => 7],
+                ['keyword' => 'qualify_timeout', 'data' => 3.0, 'flags' => 34],
+                ['keyword' => 'remove_existing', 'data' => 'no', 'flags' => 33],
+                ['keyword' => 'rtcp_mux', 'data' => 'no', 'flags' => 9],
+                ['keyword' => 'secret', 'data' => $password, 'flags' => 2],
+                ['keyword' => 'sendrpid', 'data' => 'no', 'flags' => 6],
+                ['keyword' => 'stir_shaken', 'data' => 'off', 'flags' => 30],
+                ['keyword' => 'subscribe_context', 'data' => '', 'flags' => 28],
+                ['keyword' => 'transport', 'data' => 'transport-udp', 'flags' => 8],
+                ['keyword' => 'trustrpid', 'data' => 'yes', 'flags' => 5],
+                ['keyword' => 'use_avpf', 'data' => 'no', 'flags' => 20],
+            ];
 
-    # IP Filter tanımı
-    echo \"[$username-identifier]\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"type=identify\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"endpoint=$username\" >> /etc/asterisk/pjsip_custom.conf; 
-    echo \"match=213.14.229.130\" >> /etc/asterisk/pjsip_custom.conf; 
-    ";
+            // Veritabanına dinamik olarak ekleme işlemi
+            foreach ($sipData as $data) {
+                $sipDevice = Sip::create([
+                    'id' => $username,      // Kullanıcının email'i
+                    'keyword' => $data['keyword'],
+                    'data' => $data['data'],
+                    'flags' => $data['flags'],
+                ]);
 
-        $ssh->exec($command);
-        $ssh->exec('asterisk -rx "pjsip reload"');
+                $createdSip[] = $sipDevice;
+            }
+
+            $ssh = new SSH2('213.14.229.130'); // Asterisk sunucunuzun IP'sini yazın
+            if (!$ssh->login('root', 'B0ncuk24')) {
+                throw new \Exception('SSH bağlantısı başarısız.');
+            }
+
+            $command = "
+        echo \"[$username]\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"type=endpoint\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"context=from-external\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"disallow=all\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"allow=ulaw,alaw\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"auth=auth$username\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"aors=$username\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"transport=transport-udp\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"direct_media=no\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"rtp_symmetric=yes\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"force_rport=yes\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"\" >> /etc/asterisk/pjsip_custom.conf; 
+    
+        # Authentication tanımı
+        echo \"[auth$username]\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"type=auth\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"auth_type=userpass\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"username=$username\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"password=$password\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"\" >> /etc/asterisk/pjsip_custom.conf; 
+    
+        # AOR tanımı
+        echo \"[$username]\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"type=aor\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"max_contacts=1\" >> /etc/asterisk/pjsip_custom.conf;
+    
+        # IP Filter tanımı
+        echo \"[$username-identifier]\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"type=identify\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"endpoint=$username\" >> /etc/asterisk/pjsip_custom.conf; 
+        echo \"match=213.14.229.130\" >> /etc/asterisk/pjsip_custom.conf; 
+        ";
+
+            $ssh->exec($command);
+            $ssh->exec('asterisk -rx "pjsip reload"');
 
 
-        $output = $ssh->exec('sudo asterisk -rx "dialplan reload');
-        $output1 = $ssh->exec('sudo asterisk -rx "pjsip reload');
-        if (!empty($output)) {
-            throw new \Exception("Asterisk yeniden başlatma hatası: " . $output);
-        }
+            $output = $ssh->exec('sudo asterisk -rx "dialplan reload');
+            $output1 = $ssh->exec('sudo asterisk -rx "pjsip reload');
+            if (!empty($output)) {
+                throw new \Exception("Asterisk yeniden başlatma hatası: " . $output);
+            }
 
 
 
 
 
 
-        // $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
-        // $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], Carbon::now()->addMinutes(config('sanctum.rt_expiration')));
-        // Erişim Token süresi ve oluşturulması
-        $accessTokenExpiration = Carbon::now()->addMinutes(config('sanctum.ac_expiration'));
-        $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], $accessTokenExpiration);
+            // $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
+            // $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], Carbon::now()->addMinutes(config('sanctum.rt_expiration')));
+            // Erişim Token süresi ve oluşturulması
+            $accessTokenExpiration = Carbon::now()->addMinutes(config('sanctum.ac_expiration'));
+            $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], $accessTokenExpiration);
 
-        // Yenileme Token süresi ve oluşturulması
-        $refreshTokenExpiration = Carbon::now()->addMinutes(config('sanctum.rt_expiration'));
-        $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], $refreshTokenExpiration);
+            // Yenileme Token süresi ve oluşturulması
+            $refreshTokenExpiration = Carbon::now()->addMinutes(config('sanctum.rt_expiration'));
+            $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], $refreshTokenExpiration);
 
 
-        // 'expires_in' bilgileri (saniye cinsinden)
-        $accessTokenExpiresIn = round(Carbon::now()->diffInSeconds($accessTokenExpiration) / 3600, 2);
-        $refreshTokenExpiresIn = Carbon::now()->diffInSeconds($refreshTokenExpiration) / 3600;
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Transaction successful',
-            'data' => [
-                'access_token' => $accessToken->plainTextToken,
-                'refresh_token' => $refreshToken->plainTextToken,
-                'expires_in' => $accessTokenExpiresIn,
-                'user' => [
-                    'id' => $user->id,
-                    'firstname' => $user->name,
-                    'lastname' => $user->last_name,
-                    'phone_number' =>  $user->phone_number,
-                    'full_name' => $user->full_name,
-                    'photo_link' => $user->photo_link
+            // 'expires_in' bilgileri (saniye cinsinden)
+            $accessTokenExpiresIn = round(Carbon::now()->diffInSeconds($accessTokenExpiration) / 3600, 2);
+            $refreshTokenExpiresIn = Carbon::now()->diffInSeconds($refreshTokenExpiration) / 3600;
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage,
+                'data' => [
+                    'access_token' => $accessToken->plainTextToken,
+                    'refresh_token' => $refreshToken->plainTextToken,
+                    'expires_in' => $accessTokenExpiresIn,
+                    'user' => [
+                        'id' => $user->id,
+                        'firstname' => $user->name,
+                        'lastname' => $user->last_name,
+                        'phone_number' =>  $user->phone_number,
+                        'full_name' => $user->full_name,
+                        'photo_link' => $user->photo_link
+                    ],
                 ],
-            ],
-        ], 200);
-        // return [
-        //     'SipPhones' => $accessToken,
-        //     'SipUsers' => $refreshToken,
-        //     'SipDevices' =>  $sipDevices,
-        //     'Sip' => $createdSip
-        // ];
+            ], 200);
+        } catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
     }
 
     function disableEndpoint(Request $request)
@@ -269,89 +275,128 @@ class AuthController extends Controller
     }
     public  function login(Request $request)
     {
-        $languageType = $request->header('Accept-Language');
-        $user = User::where('email', $request->full_name)->first();
+        try {
+            $languageType = $request->header('Accept-Language');
+            $user = User::where('email', $request->full_name)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response([
-                'message' => 'Bad creds'
-            ], 401);
-        }
-        $rooms = Rooms::where('created_by', $user->id)->first();
-        $isabel_user = Rooms::where('created_by', $user->id)->first();
-
-
-
-     
-        $userId = $user->id;
-        $companyToGuides = Company::whereHas('guides', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })->get();
-  
-        // $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
-        // $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], Carbon::now()->addMinutes(config('sanctum.rt_expiration')));
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response([
+                    'message' => 'Bad creds'
+                ], 401);
+            }
+            $rooms = Rooms::where('created_by', $user->id)->first();
+            $isabel_user = Rooms::where('created_by', $user->id)->first();
 
 
-        $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->setTimezone('Europe/Istanbul')->addMinutes(config('sanctum.ac_expiration')));
 
 
-        $accessTokenExpirationMinutes = config('sanctum.ac_expiration'); // Örneğin 60
-        $accessTokenExpiration = Carbon::now()->setTimezone('Europe/Istanbul')->addMinutes($accessTokenExpirationMinutes);
-        $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], $accessTokenExpiration);
+            $userId = $user->id;
+            $companyToGuides = Company::whereHas('guides', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->get();
 
-        // Yenileme Token süresi ve oluşturulması
-        // Yenileme Token süresi (24 saat = 86400 saniye)
-        $refreshTokenExpirationMinutes = config('sanctum.rt_expiration'); // Örneğin 1440 (24 saat)
-        $refreshTokenExpiration = Carbon::now()->addMinutes($refreshTokenExpirationMinutes);
-        $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], $refreshTokenExpiration);
+            // $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
+            // $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], Carbon::now()->addMinutes(config('sanctum.rt_expiration')));
 
 
-        $accessTokenExpiresIn = $accessTokenExpirationMinutes * 60; // 60 dakika = 3600 saniye
-        $refreshTokenExpiresIn = $refreshTokenExpirationMinutes * 60; // 1440 dakika = 86400 saniye
+            $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->setTimezone('Europe/Istanbul')->addMinutes(config('sanctum.ac_expiration')));
 
-        // $token = $user->createToken('auth_token')->plainTextToken;
 
-        $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
-        return response()->json([
-            'status' => true,
-            'message' => $successMessage,
-            'data' => [
-                'access_token' => $accessToken->plainTextToken,
-                'refresh_token' => $refreshToken->plainTextToken,
-                'expires_in' => $accessTokenExpiresIn,
-                'user' => [
-                    'id' => $user->id,
-                    'firstname' => $user->name,
-                    'lastname' => $user->last_name,
-                    'phone_number' =>  $user->phone_number,
-                    'username' => $user->email,
-                    'photo_link' => $user->photo_link ?: "",
-                    'isabel' => [
-                        'username' => $isabel_user->username,
-                        'password' => $isabel_user->password,
-                        'link' => "https://pbx.limonisthost.com/"
+            $accessTokenExpirationMinutes = config('sanctum.ac_expiration'); // Örneğin 60
+            $accessTokenExpiration = Carbon::now()->setTimezone('Europe/Istanbul')->addMinutes($accessTokenExpirationMinutes);
+            $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], $accessTokenExpiration);
+
+            // Yenileme Token süresi ve oluşturulması
+            // Yenileme Token süresi (24 saat = 86400 saniye)
+            $refreshTokenExpirationMinutes = config('sanctum.rt_expiration'); // Örneğin 1440 (24 saat)
+            $refreshTokenExpiration = Carbon::now()->addMinutes($refreshTokenExpirationMinutes);
+            $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], $refreshTokenExpiration);
+
+
+            $accessTokenExpiresIn = $accessTokenExpirationMinutes * 60; // 60 dakika = 3600 saniye
+            $refreshTokenExpiresIn = $refreshTokenExpirationMinutes * 60; // 1440 dakika = 86400 saniye
+
+            // $token = $user->createToken('auth_token')->plainTextToken;
+
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage,
+                'data' => [
+                    'access_token' => $accessToken->plainTextToken,
+                    'refresh_token' => $refreshToken->plainTextToken,
+                    'expires_in' => $accessTokenExpiresIn,
+                    'user' => [
+                        'id' => $user->id,
+                        'firstname' => $user->name,
+                        'lastname' => $user->last_name,
+                        'phone_number' =>  $user->phone_number,
+                        'username' => $user->email,
+                        'photo_link' => $user->photo_link ?: "",
+                        'isabel' => [
+                            'username' => $isabel_user->username,
+                            'password' => $isabel_user->password,
+                            'link' => "https://pbx.limonisthost.com/"
+                        ],
+                        'room' => $rooms,
+                        'company' => $companyToGuides
                     ],
-                    'room' => $rooms,
-                    'company' => $companyToGuides
                 ],
-            ],
 
 
 
 
-        ], 200);
+            ], 200);
+        } catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
     }
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        try {
+            $languageType = $request->header('Accept-Language');
+            $request->user()->tokens()->delete();
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            return [
+                'status' => true,
+                'message' => $successMessage
+            ];
+        } catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
 
-        return [
-            'message' => 'You are logout.'
-        ];
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
     }
     public function refreshToken(Request $request)
     {
-        $accessToken = $request->user()->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
-        return response(['message' => "Token généré", 'token' => $accessToken->plainTextToken]);
+        try{
+            $languageType = $request->header('Accept-Language');
+            $accessToken = $request->user()->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            return response(['message' =>  $successMessage, 'token' => $accessToken->plainTextToken]);
+        }
+        catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
+     
     }
 }

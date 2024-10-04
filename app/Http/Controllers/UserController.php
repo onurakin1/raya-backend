@@ -22,46 +22,70 @@ class UserController extends Controller
     }
     public function update(Request $request, $id)
     {
-        // Find the user by ID
-        $user = User::find($id);
+        try {
+            // Find the user by ID
+            $user = User::find($id);
+            $languageType = $request->header('Accept-Language');
+            // Check if the user exists
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User not found.',
+                ], 404);
+            }
 
-        // Check if the user exists
-        if (!$user) {
+            // Get all input data from the request
+            $input = $request->all();
+
+            // If password is present, hash it before updating
+            if (isset($input['password'])) {
+                $input['password'] = bcrypt($input['password']);
+            }
+
+            // Update the user with the input data
+            $user->update($input);
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage,
+                'data' => $user, // Return updated user data
+            ]);
+        } catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+
+            // Hata durumunda JSON yanıtı döndür
             return response()->json([
                 'status' => false,
-                'message' => 'User not found.',
-            ], 404);
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
         }
-
-        // Get all input data from the request
-        $input = $request->all();
-
-        // If password is present, hash it before updating
-        if (isset($input['password'])) {
-            $input['password'] = bcrypt($input['password']);
-        }
-
-        // Update the user with the input data
-        $user->update($input);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'User updated successfully.',
-            'data' => $user, // Return updated user data
-        ]);
     }
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-     
-        $user = User::findOrFail($id);
 
-     
-        $user->delete();
+        try{
+            $user = User::findOrFail($id);
+            $languageType = $request->header('Accept-Language');
 
-        return response()->json([
-            'status' => true,
-            'message' => 'User Deleted Successfully',
-            'data' => $user, 
-        ]);
+            $user->delete();
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage,
+                'data' => $user,
+            ]);
+        }
+        catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
+      
     }
 }

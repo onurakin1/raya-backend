@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RoomUsers;
 use App\Models\Tours;
 use Illuminate\Http\Request;
 use App\Models\TourToGuide;
@@ -45,45 +46,102 @@ class TourController extends Controller
     {
         //
     }
-
-    public function tourRegistration(Request $request)
+    public function AccountCheck(Request $request)
     {
-        $code = $request->query('code');
-        $tour = Tours::where('tour_code', $code)->first();
-        $details = $tour->details;
-        $tourDates = optional($details->first())->tour_dates;
-
-        if ($tour) {
-            // Tarih aralığını ayır
-            list($startDate, $endDate) = explode(' - ', $tourDates);
-            $startDate = Carbon::createFromFormat('d.m.Y', trim($startDate));
-            $endDate = Carbon::createFromFormat('d.m.Y', trim($endDate));
-
-            // Eğer tarih aralığı geçmişse kapalı olarak işaretle
-            if ($endDate->isPast()) {
+        try {
+            $code = $request->query('code');
+            $languageType = $request->header('Accept-Language') ?? 'en'; // Dil bilgisi boşsa varsayılan olarak 'en' kabul edilir
+            
+            // name ve role ile filtreleme
+            $room_users = RoomUsers::where('name', $code)
+                ->where('role', 'User')
+                ->get();
+    
+            // Eğer kayıt bulunmuşsa
+            if (!$room_users->isEmpty()) {
+                $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
                 return response()->json([
                     'status' => true,
-                    'message' => 'Tur tarihi geçmiş',
-                    'data' => (object) [],
-                ], 404);
+                    'message' => $successMessage, // Başarı mesajı
+                    
+                ]);
             }
-        }
-        if (!$tour) {
+    
+            // Eğer kayıt bulunamamışsa
+            $notFoundMessage = ($languageType === 'tr') ? 'Bulunamadı' : 'Not Found';
             return response()->json([
                 'status' => false,
-                'message' => 'Tour not found.',
-                'data' => null
-            ], 404); // 404 Not Found
+                'message' => $notFoundMessage,
+         
+            ], 404);
+    
+        } catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $languageType = $request->header('Accept-Language') ?? 'en'; // Hata durumunda dil ayarını tekrar alıyoruz
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+    
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500);
         }
+    }
+    
+    public function tourRegistration(Request $request)
+    {
+        try{
+            $code = $request->query('code');
+            $tour = Tours::where('tour_code', $code)->first();
+            $details = $tour->details;
+            $tourDates = optional($details->first())->tour_dates;
+            $languageType = $request->header('Accept-Language');
 
-        return response()->json([
-            'status' => true,
-            'message' => 'The operation has been successfully completed.',
-            'data' =>  [
-                'id' => $tour->id,
-                'code' => $tour->tour_code, // Sadece tour_code'yu dahil ediyoruz
-            ],
-        ]);
+            if ($tour) {
+                // Tarih aralığını ayır
+                list($startDate, $endDate) = explode(' - ', $tourDates);
+                $startDate = Carbon::createFromFormat('d.m.Y', trim($startDate));
+                $endDate = Carbon::createFromFormat('d.m.Y', trim($endDate));
+    
+                // Eğer tarih aralığı geçmişse kapalı olarak işaretle
+                if ($endDate->isPast()) {
+                    $tourExpires = ($languageType === 'tr') ? 'Tur tarihi geçmiş' : 'Tour date has expired';
+                    return response()->json([
+                        'status' => true,
+                        'message' => $tourExpires,
+                        'data' => (object) [],
+                    ], 404);
+                }
+            }
+            if (!$tour) {
+                $notFoundMessage = ($languageType === 'tr') ? 'Bulunamadı' : 'Not Found';
+                return response()->json([
+                    'status' => false,
+                    'message' => $notFoundMessage,
+                    'data' => null
+                ], 404); // 404 Not Found
+            }
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage,
+                'data' =>  [
+                    'id' => $tour->id,
+                    'code' => $tour->tour_code, // Sadece tour_code'yu dahil ediyoruz
+                ],
+            ]);
+        }
+        catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+    
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
+    
     }
 
     public function tourDetail(Request $request)
@@ -183,56 +241,70 @@ class TourController extends Controller
 
     public function getAllToursToGuide(Request $request)
     {
-        $user = $request->user();
-        $userId = $user->id;
-        $languageType = $request->header('Accept-Language');
-
-        // Kullanıcıya atanmış turları al
-        $tours = Tours::whereHas('guides', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })->with('details')->get();
-
-        // Eğer kullanıcıya atanmış tur yoksa hata mesajı döndür
-        if ($tours->isEmpty()) {
+        try{
+            $user = $request->user();
+            $userId = $user->id;
+            $languageType = $request->header('Accept-Language');
+    
+            // Kullanıcıya atanmış turları al
+            $tours = Tours::whereHas('guides', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->with('details')->get();
+    
+            // Eğer kullanıcıya atanmış tur yoksa hata mesajı döndür
+            if ($tours->isEmpty()) {
+                $NoFoundTourMessage = ($languageType === 'tr') ? 'Bu kullanıcı için tur bulunamadı.' : 'No tours found for this user.';
+                return response()->json([
+                    'status' => false,
+                    'message' => $NoFoundTourMessage,
+                    'data' => null
+                ], 404); // 404 Not Found
+            }
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            // Turları ve detaylarını JSON formatında döndür
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage,
+                'data' => $tours->map(function ($tour) use ($languageType) {
+                    // Tur adı için dil kontrolü
+                    $tourNames = json_decode($tour->name, true);
+                    $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? '';
+    
+                    // Detay açıklaması için dil kontrolü
+                    $tourDetails = $tour->details->first();
+                    $tourDescriptions = json_decode(optional($tourDetails)->description, true);
+                    $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
+    
+                    $tourRooms = json_decode(optional($tourDetails)->voice_rooms, true);
+                    $tourMaterials = json_decode(optional($tourDetails)->materials, true);
+                    // Diğer detaylar (tarih, materyaller, odalar)
+                    $tourDate = optional($tourDetails)->tour_dates ?? 'N/A'; // Eğer tarih yoksa 'N/A' göster
+                    $tourMaterial = $tourMaterials ?? []; // Eğer materyaller null ise boş dizi
+                    $tourRoom = $tourRooms ?? []; // Eğer odalar null ise boş dizi
+    
+                    return [
+                        'id' => $tour->id,
+                        'code' => $tour->tour_code,
+                        'name' => $tourName, // Dile göre ayarlanmış tur adı
+                        'description' => $tourDescription, // Dile göre ayarlanmış açıklama
+                        'date' => $tourDate, // Tarih bilgisi
+                        'materials' => $tourMaterial, // Materyal bilgisi
+                        'rooms' => $tourRoom, // Oda bilgisi
+                    ];
+                }),
+            ]);
+        }
+        catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+    
+            // Hata durumunda JSON yanıtı döndür
             return response()->json([
                 'status' => false,
-                'message' => 'No tours found for this user.',
-                'data' => null
-            ], 404); // 404 Not Found
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
         }
-
-        // Turları ve detaylarını JSON formatında döndür
-        return response()->json([
-            'status' => true,
-            'message' => 'Tours retrieved successfully.',
-            'data' => $tours->map(function ($tour) use ($languageType) {
-                // Tur adı için dil kontrolü
-                $tourNames = json_decode($tour->name, true);
-                $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? '';
-
-                // Detay açıklaması için dil kontrolü
-                $tourDetails = $tour->details->first();
-                $tourDescriptions = json_decode(optional($tourDetails)->description, true);
-                $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
-
-                $tourRooms = json_decode(optional($tourDetails)->voice_rooms, true);
-                $tourMaterials = json_decode(optional($tourDetails)->materials, true);
-                // Diğer detaylar (tarih, materyaller, odalar)
-                $tourDate = optional($tourDetails)->tour_dates ?? 'N/A'; // Eğer tarih yoksa 'N/A' göster
-                $tourMaterial = $tourMaterials ?? []; // Eğer materyaller null ise boş dizi
-                $tourRoom = $tourRooms ?? []; // Eğer odalar null ise boş dizi
-
-                return [
-                    'id' => $tour->id,
-                    'code' => $tour->tour_code,
-                    'name' => $tourName, // Dile göre ayarlanmış tur adı
-                    'description' => $tourDescription, // Dile göre ayarlanmış açıklama
-                    'date' => $tourDate, // Tarih bilgisi
-                    'materials' => $tourMaterial, // Materyal bilgisi
-                    'rooms' => $tourRoom, // Oda bilgisi
-                ];
-            }),
-        ]);
+  
     }
 
 

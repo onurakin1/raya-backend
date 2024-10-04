@@ -15,24 +15,29 @@ class CompanyController extends Controller
     public function store(Request $request)
     {
         try {
+            $languageType = $request->header('Accept-Language');
             $today = Carbon::today();
             $createdCompany = Company::create([
                 'name' => $request->name,
                 'created_at' => $today
 
             ]);
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'success' => true,
-                'message' => 'Company created successfully!',
+                'message' => $successMessage,
 
                 'data' => $createdCompany
             ], 201);
-        } catch (\Exception $e) {
-
+        }    catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+    
+            // Hata durumunda JSON yanıtı döndür
             return response()->json([
-                'success' => false,
-                'message' => 'Failed to create channel: ' . $e->getMessage(),
-            ], 500);
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
         }
     }
 

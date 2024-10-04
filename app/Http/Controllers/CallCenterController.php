@@ -12,6 +12,7 @@ class CallCenterController extends Controller
     public function CallCenter(Request $request)
     {
         try {
+            $languageType = $request->header('Accept-Language');
             $today = Carbon::today();
             $user = $request->user();
             $userId = $user->id;
@@ -35,17 +36,21 @@ class CallCenterController extends Controller
                 // Append the phone information to the response data
                 $responseData['phone'] = $phoneInfo;
             }
-    
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'success' => true,
-                'message' => 'Messages fetched successfully!',
+                'message' => $successMessage,
                 'data' => $responseData
             ], 201);
         } catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+    
+            // Hata durumunda JSON yanıtı döndür
             return response()->json([
-                'success' => false,
-                'message' => 'Failed to create channel: ' . $e->getMessage(),
-            ], 500);
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
         }
     }
     
@@ -54,6 +59,7 @@ class CallCenterController extends Controller
     public function SendMessage(Request $request) 
     {
         try {
+            $languageType = $request->header('Accept-Language');
             $today = Carbon::today();
             $user = $request->user();
             $userId = $user->id;
@@ -67,9 +73,10 @@ class CallCenterController extends Controller
                 'sender_type' => 2
 
             ]);
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'success' => true,
-                'message' => 'Message sent successfully!',
+                'message' =>  $successMessage,
 
                 'data' => [
                     'message' =>  [
@@ -83,11 +90,14 @@ class CallCenterController extends Controller
 
             ], 201);
         } catch (\Exception $e) {
-
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+    
+            // Hata durumunda JSON yanıtı döndür
             return response()->json([
-                'success' => false,
-                'message' => 'Failed to create channel: ' . $e->getMessage(),
-            ], 500);
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
         }
     }
 }
