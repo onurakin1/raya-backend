@@ -79,7 +79,7 @@ class MenuItemsController extends Controller
                         'isabel' => [
                             'username' => $asteriskUsers->name,
                             'password' => $asteriskUsers->password,
-                            'link' => "pbx.limonisthost.com"
+                            'url' => "pbx.limonisthost.com"
                         ],
                         'company' => $company,  // Kullanıcıya atanmış şirketler
                     ],
