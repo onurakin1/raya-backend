@@ -20,7 +20,7 @@ class NotificationController extends Controller
      */
     public function NotificationSettings(Request $request)
     {
-        try{
+    
             $user = $request->user();
             $userId = $user->id;
             $languageType = $request->header('Accept-Language');
@@ -49,17 +49,7 @@ class NotificationController extends Controller
                     'items' => $filtered_data
                 ]
             ]);
-        }
-        catch (\Exception $e) {
-            // Dil bilgisine göre hata mesajını ayarla
-            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
-    
-            // Hata durumunda JSON yanıtı döndür
-            return response()->json([
-                'status' => false,
-                'message' => $errorMessage, // Hata mesajı
-            ], 500); // 500 sunucu hatası kodu
-        }
+       
 
     }
 
