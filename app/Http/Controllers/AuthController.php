@@ -269,7 +269,7 @@ class AuthController extends Controller
     }
     public  function login(Request $request)
     {
-
+        $languageType = $request->header('Accept-Language');
         $user = User::where('email', $request->full_name)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -311,10 +311,10 @@ class AuthController extends Controller
 
         // $token = $user->createToken('auth_token')->plainTextToken;
 
-
+        $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
         return response()->json([
             'status' => true,
-            'message' => 'Transaction successful',
+            'message' => $successMessage,
             'data' => [
                 'access_token' => $accessToken->plainTextToken,
                 'refresh_token' => $refreshToken->plainTextToken,

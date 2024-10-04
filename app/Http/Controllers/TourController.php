@@ -88,80 +88,94 @@ class TourController extends Controller
 
     public function tourDetail(Request $request)
     {
-        $id = $request->query('id');
-        $tour = Tours::where('id', $id)->first();
-        $languageType = $request->header('Accept-Language');
-
-        // Eğer tur bulunamazsa hata mesajı döndür
-        if (!$tour) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Tour not found.',
-                'data' => null
-            ], 404); // 404 Not Found
-        }
-
-        // Tur adı için dil bilgisine göre değer al
-        $tourNames = json_decode($tour->name, true);
-        $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? ''; // 'en' değeri yoksa boş bir string döndür
-
-        // İlişkili detayları al
-        $details = $tour->details;
-
-        // İlk detayın açıklamasını al
-        $tourDescriptions = json_decode(optional($details->first())->description, true);
-        $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? ''; // 'en' değeri yoksa boş bir string döndür
-
-        // voice_rooms kontrolü (geçerlilik süresine göre)
-        $roomsData = json_decode(optional($details->first())->voice_rooms, true);
-        $rooms = [];
-
-        if ($roomsData && is_array($roomsData)) {
-            foreach ($roomsData as $room) {
-                if (isset($room['expires_time'])) {
-                    $expiresTime = Carbon::parse($room['expires_time']);
-                    if ($expiresTime->isFuture()) {
-                        // expires_time gelecekte ise, odayı ekle
-                        $rooms[] = $room;
+        try{
+            $id = $request->query('id');
+            $tour = Tours::where('id', $id)->first();
+            $languageType = $request->header('Accept-Language');
+    
+            // Eğer tur bulunamazsa hata mesajı döndür
+            if (!$tour) {
+                $notFoundMessage = ($languageType === 'tr') ? 'Bulunamadı' : 'Not Found';
+                return response()->json([
+                    'status' => false,
+                    'message' => $notFoundMessage,
+                    'data' => null
+                ], 404); // 404 Not Found
+            }
+    
+            // Tur adı için dil bilgisine göre değer al
+            $tourNames = json_decode($tour->name, true);
+            $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? ''; // 'en' değeri yoksa boş bir string döndür
+    
+            // İlişkili detayları al
+            $details = $tour->details;
+    
+            // İlk detayın açıklamasını al
+            $tourDescriptions = json_decode(optional($details->first())->description, true);
+            $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? ''; // 'en' değeri yoksa boş bir string döndür
+    
+            // voice_rooms kontrolü (geçerlilik süresine göre)
+            $roomsData = json_decode(optional($details->first())->voice_rooms, true);
+            $rooms = [];
+    
+            if ($roomsData && is_array($roomsData)) {
+                foreach ($roomsData as $room) {
+                    if (isset($room['expires_time'])) {
+                        $expiresTime = Carbon::parse($room['expires_time']);
+                        if ($expiresTime->isFuture()) {
+                            // expires_time gelecekte ise, odayı ekle
+                            $rooms[] = $room;
+                        }
                     }
                 }
             }
-        }
-
-        // materials verisini al
-        $materials = json_decode(optional($details->first())->materials, true);
-
-        // Tur tarihlerini kontrol et
-        $tourDates = optional($details->first())->tour_dates;
-        $isClosed = false; // Varsayılan olarak kapalı değil
-
-        if ($tourDates) {
-            // Tarih aralığını ayır
-            list($startDate, $endDate) = explode(' - ', $tourDates);
-            $startDate = Carbon::createFromFormat('d.m.Y', trim($startDate));
-            $endDate = Carbon::createFromFormat('d.m.Y', trim($endDate));
-
-            // Eğer tarih aralığı geçmişse kapalı olarak işaretle
-            if ($endDate->isPast()) {
-                $isClosed = true;
+    
+            // materials verisini al
+            $materials = json_decode(optional($details->first())->materials, true);
+    
+            // Tur tarihlerini kontrol et
+            $tourDates = optional($details->first())->tour_dates;
+            $isClosed = false; // Varsayılan olarak kapalı değil
+    
+            if ($tourDates) {
+                // Tarih aralığını ayır
+                list($startDate, $endDate) = explode(' - ', $tourDates);
+                $startDate = Carbon::createFromFormat('d.m.Y', trim($startDate));
+                $endDate = Carbon::createFromFormat('d.m.Y', trim($endDate));
+    
+                // Eğer tarih aralığı geçmişse kapalı olarak işaretle
+                if ($endDate->isPast()) {
+                    $isClosed = true;
+                }
             }
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+            // Tur bilgilerini ve detayları JSON formatında döndür
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage,
+                'data' => [
+                    'id' => $tour->id,
+                    'title' => $tourName,
+                    'code' => $tour->tour_code, // Eğer tour_code'yu da dahil etmek istiyorsanız
+                    'description' => $tourDescription,
+                    'date' => $tourDates,
+                    'rooms' => $rooms, // Sadece geçerli odalar
+                    'materials' => $materials ?? [], // Eğer materials null ise boş dizi döndür
+                    'closed' => $isClosed // Kapalı durumu
+                ],
+            ]);
         }
-
-        // Tur bilgilerini ve detayları JSON formatında döndür
-        return response()->json([
-            'status' => true,
-            'message' => 'The operation has been successfully completed.',
-            'data' => [
-                'id' => $tour->id,
-                'title' => $tourName,
-                'code' => $tour->tour_code, // Eğer tour_code'yu da dahil etmek istiyorsanız
-                'description' => $tourDescription,
-                'date' => $tourDates,
-                'rooms' => $rooms, // Sadece geçerli odalar
-                'materials' => $materials ?? [], // Eğer materials null ise boş dizi döndür
-                'closed' => $isClosed // Kapalı durumu
-            ],
-        ]);
+        catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+    
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
+       
     }
 
 

@@ -51,7 +51,7 @@ class MenuItemsController extends Controller
                 'switch_value' => 0
             ];
         });
-    
+        $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
         return response()->json([
             'status' => true,
             'data' => [
@@ -73,7 +73,7 @@ class MenuItemsController extends Controller
                     'company' => $companyToGuides,  // Kullanıcıya atanmış şirketler
                 ]
             ],
-            'message' => 'The operation has been successfully completed!',
+            'message' => $successMessage,
         ]);
     }
 }

@@ -14,32 +14,47 @@ class IntroController extends Controller
      */
     public function index(Request $request)
     {
-        $languageType = $request->header('Accept-Language');
-        $intros = Intro::all();
+        try {
+            $languageType = $request->header('Accept-Language');
+            $intros = Intro::all();
     
-        // Veriyi istediğin formata dönüştür
-        $formattedIntros = $intros->map(function ($intro) use ($languageType) {
-            // description alanını JSON'dan diziye dönüştür
-            $descriptions = json_decode($intro->description, true);
+            // Veriyi istediğin formata dönüştür
+            $formattedIntros = $intros->map(function ($intro) use ($languageType) {
+                // description alanını JSON'dan diziye dönüştür
+                $descriptions = json_decode($intro->description, true);
     
-            // Dil bilgisine göre açıklamayı al
-            $description = $descriptions[$languageType] ?? $descriptions['en'] ?? '';
+                // Dil bilgisine göre açıklamayı al
+                $description = $descriptions[$languageType] ?? $descriptions['en'] ?? '';
     
-            return [
-                'image' => $intro->image,
-                'description' => $description, // Kullanıcının diline göre açıklamayı ekle
-            ];
-        });
+                return [
+                    'image' => $intro->image,
+                    'description' => $description, // Kullanıcının diline göre açıklamayı ekle
+                ];
+            });
     
-        // Dönüştürülmüş veriyi JSON olarak döndür
-        return response()->json([
-            'status' => true,
-            'message' => 'The operation has been successfully completed.',
-            'data' => [
-                'items' => $formattedIntros
-            ]
-        ]);
+            // Dil bilgisine göre başarı mesajını ayarla
+            $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+    
+            // Dönüştürülmüş veriyi JSON olarak döndür
+            return response()->json([
+                'status' => true,
+                'message' => $successMessage, // Başarı mesajı
+                'data' => [
+                    'items' => $formattedIntros
+                ]
+            ]);
+        } catch (\Exception $e) {
+            // Dil bilgisine göre hata mesajını ayarla
+            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
+    
+            // Hata durumunda JSON yanıtı döndür
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage, // Hata mesajı
+            ], 500); // 500 sunucu hatası kodu
+        }
     }
+    
     
 
     /**
