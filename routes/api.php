@@ -55,4 +55,5 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/disable-endpoint', [AuthController::class, 'disableEndpoint']);
 Route::post('/upload', [FileUploadController::class, 'upload']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/refresh-token', [CallCenterController::class, 'refreshToken'])->middleware('auth:sanctum');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');

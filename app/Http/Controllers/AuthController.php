@@ -11,6 +11,7 @@ use App\Enums\TokenAbility;
 use App\Models\Company;
 use App\Models\Rooms;
 use App\Models\RoomUsers;
+use App\Models\UserDevices;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -282,7 +283,8 @@ class AuthController extends Controller
     {
         try {
             $languageType = $request->header('Accept-Language');
-            $user = User::where('email', $request->full_name)->first();
+            $user = User::where('email', $request->username)->first();
+            $today = Carbon::today();
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 return response([
@@ -292,7 +294,18 @@ class AuthController extends Controller
             $rooms = Rooms::where('created_by', $user->id)->first();
             $isabel_user = RoomUsers::where('user_id', $user->id)->first();
 
+            $user_devices = UserDevices::create([
+               
+                'app_version' => $request->app_version,
+                'device_id' => $request->device_id,
+                'device_model' => $request->device_model,
+                'device_version' => $request->device_version,
+                'device_type' => $request->device_type,
+                'user_id' => $user->id,
+                'created_at' => $today,
+                'updated_at'  => $today
 
+            ]);
 
 
             $userId = $user->id;
