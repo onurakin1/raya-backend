@@ -26,11 +26,17 @@ class NotificationController extends Controller
             $languageType = $request->header('Accept-Language');
 
             $notification_settings = DB::table('notification_settings')
-            ->join('user_notification_settings', 'notification_settings.id', '=', 'user_notification_settings.notification_setting_id')
-            ->where('user_notification_settings.user_id', $userId)
-            ->select('notification_settings.id', 'notification_settings.title', 'user_notification_settings.status', 'notification_settings.is_active') // is_active alanını ekliyoruz
+            ->leftJoin('user_notification_settings', function($join) use ($userId) {
+                $join->on('notification_settings.id', '=', 'user_notification_settings.notification_setting_id')
+                     ->where('user_notification_settings.user_id', '=', $userId);
+            })
+            ->select(
+                'notification_settings.id',
+                'notification_settings.title',
+                'notification_settings.is_active',
+                DB::raw('COALESCE(user_notification_settings.status, 0) as status') // Eğer kullanıcıda yoksa default olarak 0 döner
+            )
             ->get();
-       
     
             // Sadece id, title ve is_active (status) alanlarını içeren yeni bir yapı oluştur
             $filtered_data = $notification_settings->map(function($item) {
