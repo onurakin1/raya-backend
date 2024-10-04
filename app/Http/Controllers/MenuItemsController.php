@@ -32,10 +32,19 @@ class MenuItemsController extends Controller
         
             $userId = $user->id;
             // Kullanıcıya ait şirketleri alıyoruz
-            $companyToGuides = Company::whereHas('guides', function ($query) use ($userId) {
+            $companyToGuide = Company::whereHas('guides', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
-            })->get();
-        
+            })->first(); // Koleksiyonun ilk elemanını al
+            
+            if ($companyToGuide) {
+                $company = [
+                    'id' => $companyToGuide->id,
+                    'name' => $companyToGuide->name,
+                ];
+            } else {
+                $company = null; // Eğer hiç şirket yoksa null dönebilir
+            }
+
             // Menü öğeleri için dil desteği eklenmiş bir yapı
             $menu = $menuItems->map(function ($item) use ($languageType) {
                 // Menü başlıklarında dil kontrolü
@@ -72,7 +81,7 @@ class MenuItemsController extends Controller
                             'password' => $asteriskUsers->password,
                             'link' => "pbx.limonisthost.com"
                         ],
-                        'company' => $companyToGuides,  // Kullanıcıya atanmış şirketler
+                        'company' => $company,  // Kullanıcıya atanmış şirketler
                     ]
                 ],
              
