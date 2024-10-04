@@ -270,29 +270,43 @@ class TourController extends Controller
                         // Tour name localization
                         $tourNames = json_decode($tour->name, true);
                         $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? '';
-            
+                
                         // Details localization
                         $tourDetails = $tour->details->first();
                         $tourDescriptions = json_decode(optional($tourDetails)->description, true);
                         $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
-            
+                
                         // Extract additional details safely
                         $tourRooms = json_decode(optional($tourDetails)->voice_rooms, true) ?? [];
                         $tourMaterials = json_decode(optional($tourDetails)->materials, true) ?? [];
-                        $tourDate = optional($tourDetails)->tour_dates ?? 'N/A'; // Show 'N/A' if no date is available
+                        $tourDates = optional($tourDetails)->tour_dates ?? 'N/A'; // Get tour dates
+                
+                        // Check if the dates are in the past
+                        if ($tourDates !== 'N/A') {
+                            [$startDate, $endDate] = explode(' - ', $tourDates);
+                            // Convert to Carbon instances for comparison
+                            $currentDate = now(); // Get the current date
+                            $isPast = Carbon::parse($endDate)->isPast(); // Check if the end date is in the past
             
+                            // If the tour dates are in the past, return null
+                            if ($isPast) {
+                                return null; // Return null instead of an object
+                            }
+                        }
+                
                         return [
                             'id' => $tour->id,
                             'code' => $tour->tour_code,
-                            'name' => $tourName,
+                            'title' => $tourName,
                             'description' => $tourDescription,
-                            'date' => $tourDate,
+                            'date' => $tourDates,
                             'materials' => $tourMaterials,
                             'rooms' => $tourRooms,
                         ];
-                    }),
+                    })->filter() // Remove null values from the collection
                 ],
             ]);
+            
         }
         catch (\Exception $e) {
             // Dil bilgisine göre hata mesajını ayarla
