@@ -23,56 +23,51 @@ class UserController extends Controller
     }
     public function updateUser(Request $request)
     {
-        $name = $request->input('name');
-        // Find the user by ID
+        // Validasyon
+        $validatedData = $request->validate([
+            'file' => 'nullable|mimes:jpg,png,pdf|max:2048', // nullable ile isteğe bağlı
+            'name' => 'nullable|string|max:255', // nullable ile isteğe bağlı
+        ]);
+    
+        // Kullanıcıyı bul (örneğin, kimliğiyle)
         $user = $request->user();
-        $languageType = $request->header('Accept-Language');
-        
-        // Check if the user exists
+    
         if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not found.',
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'User not found.'], 404);
         }
     
-        // Get all input data from the request except 'file'
-        $input = $request->except('file');
-    
-        // If password is present, hash it before updating
-        if (isset($input['password'])) {
-            $input['password'] = bcrypt($input['password']);
-        }
-    
-        // Check if a file is uploaded for profile_url
+        // Dosya yükleme işlemi
         if ($request->hasFile('file')) {
-            $request->validate([
-                'file' => 'mimes:jpg,png,pdf|max:2048',
-            ]);
+            // Dosya yükleme
+            $fileName = time().'_'.$request->file('file')->getClientOriginalName();
+            $filePath = $request->file('file')->storeAs('images', $fileName, 'public');
     
-            // Store the file if present
-            if ($request->file()) {
-                $fileName = time().'_'.$request->file('file')->getClientOriginalName();
-                $filePath = $request->file('file')->storeAs('images', $fileName, 'public');
-    
-                // Add the file path to the input to update user's profile_url
-                $input['profile_url'] = $filePath;
-            }
+            // Kullanıcının profil URL'sini güncelle
+            $user->profile_url = $filePath;
         }
     
-        // Update the user with the input data
-        $user->update($input);
+        // Eğer name alanı varsa, kullanıcı adını güncelle
+        if (isset($validatedData['name'])) {
+            $user->name = $validatedData['name'];
+        }
     
-        // Success message depending on the language
-        $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+        // Kullanıcıyı güncelle
+        $user->save();
     
+        // Başarılı yanıt döndür
         return response()->json([
-            'status' => true,
-            'message' => $successMessage,
-            'data' => $user, // Return updated user data
-            'name' => $name
+            'success' => true,
+            'message' => 'Profile updated successfully.',
+            'data' => [
+                'filePath' => $filePath ?? null, // Yüklenen dosya yolu
+                'name' => $user->name, // Güncellenmiş kullanıcı adı
+                'profile_url' => $user->profile_url // Güncellenmiş profil URL'si
+            ]
         ]);
     }
+    
+    
+    
     
     public function deleteUser(Request $request)
     {
