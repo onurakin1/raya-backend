@@ -23,6 +23,7 @@ class UserController extends Controller
     }
     public function updateUser(Request $request)
     {
+        $name = $request->input('name');
         // Find the user by ID
         $user = $request->user();
         $languageType = $request->header('Accept-Language');
@@ -69,6 +70,7 @@ class UserController extends Controller
             'status' => true,
             'message' => $successMessage,
             'data' => $user, // Return updated user data
+            'name' => $name
         ]);
     }
     
