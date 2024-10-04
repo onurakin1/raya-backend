@@ -244,7 +244,7 @@ class AuthController extends Controller
                         'isabel' => [
                             'username' => $addAsteriskUsers->name,
                             'password' => $addAsteriskUsers->password,
-                            'url' => "https://pbx.limonisthost.com/"
+                            'url' => "pbx.limonisthost.com"
                         ],
                     ],
                 ],
@@ -341,7 +341,7 @@ class AuthController extends Controller
                         'isabel' => [
                             'username' => $isabel_user->username,
                             'password' => $isabel_user->password,
-                            'url' => "https://pbx.limonisthost.com/"
+                            'url' => "pbx.limonisthost.com"
                         ],
                         'room' => $rooms,
                         'company' => $companyToGuides

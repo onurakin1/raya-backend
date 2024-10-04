@@ -360,7 +360,7 @@ class ChannelController extends Controller
                     'role' => $roomUsers->role,
                     'created_at' => $roomUsers->created_at,
                     'is_active' => $roomUsers->is_active,
-                    'url' => "https://pbx.limonisthost.com/", // link ekleme
+                    'url' => "pbx.limonisthost.com", // link ekleme
                 ],
             ]);
         }
