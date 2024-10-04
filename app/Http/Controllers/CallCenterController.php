@@ -88,15 +88,18 @@ class CallCenterController extends Controller
                     ],
                 ]);
             }
-    
+            
+            if($existingMessages){
+                $createdMessage = CallCenter::create([
+                    'user_id' => $userId,
+                    'content' => $content,
+                    'created_at' => $today,
+                    'is_active' => true,
+                    'sender_type' => 1 // Kullanıcının kendi mesajı
+                ]);
+            }
             // Kullanıcının gönderdiği mesajı kaydet
-            $createdMessage = CallCenter::create([
-                'user_id' => $userId,
-                'content' => $content,
-                'created_at' => $today,
-                'is_active' => true,
-                'sender_type' => 1 // Kullanıcının kendi mesajı
-            ]);
+     
     
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
