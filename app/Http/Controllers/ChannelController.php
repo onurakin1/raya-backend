@@ -180,7 +180,7 @@ class ChannelController extends Controller
         try{
             $languageType = $request->header('Accept-Language');
             $roomCode = $request->query('code');
-            $room = Rooms::where('id', $roomCode)->first();
+            $room = Rooms::where('room_code', $roomCode)->first();
     
             // 4 haneli kullanıcı adı oluşturma (rastgele sayı)
             $username = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
