@@ -58,8 +58,8 @@ class NotificationController extends Controller
         try{
             $languageType = $request->header('Accept-Language');
             $user = $request->user();
-            $status = $request->query('status');
-            $id = $request->query('id');
+            $status = $request->status;
+            $id = $request->id;
             $today = Carbon::today();
             $notification_settings_status = UserNotificationSettings::create([
                 'user_id' => $user->id,
