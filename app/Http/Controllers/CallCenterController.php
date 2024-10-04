@@ -17,15 +17,25 @@ class CallCenterController extends Controller
             $user = $request->user();
             $userId = $user->id;
     
-            // Fetch the user's message from CallCenter
+            // Kullanıcının mesajlarını al
             $UsersMessage = CallCenter::where('user_id', $userId)->get();
     
-            // Prepare the base data
+            // Mesajları istenilen formatta düzenle
+            $formattedMessages = $UsersMessage->map(function ($message) {
+                return [
+                    'id' => $message->id,
+                    'content' => $message->content,
+                    'type' => $message->sender_type, // sender_type direkt type olarak alındı
+                    'date' => $message->created_at->format('d.m.Y H:i:s') // Tarih formatı
+                ];
+            });
+    
+            // Temel yanıt verilerini hazırla
             $responseData = [
-                'message' =>  $UsersMessage
+                'message' => $formattedMessages
             ];
     
-            // Check if 'with_phone' is present in the query string and equals 1
+            // 'with_phone' sorgu parametresi kontrolü
             if ($request->query('with_phone') == 1) {
                 $phoneInfo = [
                     'message' => 'Dilerseniz aşağıdaki buton ile bize çağrı merkezimizden de ulaşabilirsiniz.',
@@ -33,9 +43,11 @@ class CallCenterController extends Controller
                     'number' => '+908505325678'
                 ];
     
-                // Append the phone information to the response data
+                // Telefon bilgilerini yanıt verisine ekle
                 $responseData['phone'] = $phoneInfo;
             }
+    
+            // Başarı mesajı
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'success' => true,
@@ -53,6 +65,7 @@ class CallCenterController extends Controller
             ], 500); // 500 sunucu hatası kodu
         }
     }
+    
     
 
 
@@ -100,12 +113,12 @@ class CallCenterController extends Controller
                 'success' => true,
                 'message' => $successMessage,
                 'data' => [
-                    'message' =>  [
+                  
                         'id' => $createdMessage->id,
                         'content' => $createdMessage->content,
                         'type' => $createdMessage->sender_type,
                         'date' => $createdMessage->created_at->format('d.m.Y H:i:s') // Formatla
-                    ]
+                    
                 ]
             ], 201);
         } catch (\Exception $e) {
