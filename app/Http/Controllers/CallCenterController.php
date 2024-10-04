@@ -18,7 +18,7 @@ class CallCenterController extends Controller
             $userId = $user->id;
     
             // Fetch the user's message from CallCenter
-            $UsersMessage = CallCenter::where('user_id', $userId)->first();
+            $UsersMessage = CallCenter::where('user_id', $userId)->get();
     
             // Prepare the base data
             $responseData = [

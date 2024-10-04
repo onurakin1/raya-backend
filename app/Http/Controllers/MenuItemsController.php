@@ -57,6 +57,7 @@ class MenuItemsController extends Controller
                     'description' => $item->value,
                     'seque' => $item->seque,
                     'image_link' => $item->icon,
+                    'order_number' => $item->order_number,
                     'type' => $item->type,
                     'switch_value' => 0
                 ];
