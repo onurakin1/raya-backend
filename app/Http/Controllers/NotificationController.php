@@ -22,7 +22,13 @@ class NotificationController extends Controller
     {
         try{
             $user = $request->user();
+            $userId = $user->id;
             $languageType = $request->header('Accept-Language');
+
+            $notification_settings = NotificationSettings::whereHas('status', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->get();
+            
             $notification_settings = NotificationSettings::all();
     
             // Sadece id, title ve is_active (status) alanlarını içeren yeni bir yapı oluştur
