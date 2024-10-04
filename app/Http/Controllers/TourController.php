@@ -265,33 +265,33 @@ class TourController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => $successMessage,
-                'data' => $tours->map(function ($tour) use ($languageType) {
-                    // Tur adı için dil kontrolü
-                    $tourNames = json_decode($tour->name, true);
-                    $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? '';
-    
-                    // Detay açıklaması için dil kontrolü
-                    $tourDetails = $tour->details->first();
-                    $tourDescriptions = json_decode(optional($tourDetails)->description, true);
-                    $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
-    
-                    $tourRooms = json_decode(optional($tourDetails)->voice_rooms, true);
-                    $tourMaterials = json_decode(optional($tourDetails)->materials, true);
-                    // Diğer detaylar (tarih, materyaller, odalar)
-                    $tourDate = optional($tourDetails)->tour_dates ?? 'N/A'; // Eğer tarih yoksa 'N/A' göster
-                    $tourMaterial = $tourMaterials ?? []; // Eğer materyaller null ise boş dizi
-                    $tourRoom = $tourRooms ?? []; // Eğer odalar null ise boş dizi
-    
-                    return [
-                        'id' => $tour->id,
-                        'code' => $tour->tour_code,
-                        'name' => $tourName, // Dile göre ayarlanmış tur adı
-                        'description' => $tourDescription, // Dile göre ayarlanmış açıklama
-                        'date' => $tourDate, // Tarih bilgisi
-                        'materials' => $tourMaterial, // Materyal bilgisi
-                        'rooms' => $tourRoom, // Oda bilgisi
-                    ];
-                }),
+                'data' => [
+                    'items' => $tours->map(function ($tour) use ($languageType) {
+                        // Tour name localization
+                        $tourNames = json_decode($tour->name, true);
+                        $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? '';
+            
+                        // Details localization
+                        $tourDetails = $tour->details->first();
+                        $tourDescriptions = json_decode(optional($tourDetails)->description, true);
+                        $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
+            
+                        // Extract additional details safely
+                        $tourRooms = json_decode(optional($tourDetails)->voice_rooms, true) ?? [];
+                        $tourMaterials = json_decode(optional($tourDetails)->materials, true) ?? [];
+                        $tourDate = optional($tourDetails)->tour_dates ?? 'N/A'; // Show 'N/A' if no date is available
+            
+                        return [
+                            'id' => $tour->id,
+                            'code' => $tour->tour_code,
+                            'name' => $tourName,
+                            'description' => $tourDescription,
+                            'date' => $tourDate,
+                            'materials' => $tourMaterials,
+                            'rooms' => $tourRooms,
+                        ];
+                    }),
+                ],
             ]);
         }
         catch (\Exception $e) {
