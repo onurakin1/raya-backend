@@ -37,7 +37,7 @@ class NotificationController extends Controller
                 return [
                     'id' => $item->id,
                     'title' => json_decode($item->title)->tr, // Title'ı JSON olarak çözüp 'tr' alanını alıyoruz
-                    'status' => (bool) $item->is_active // is_active'i status olarak döndürüyoruz
+                    'status' => (bool) $item->status // is_active'i status olarak döndürüyoruz
                 ];
             });
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
