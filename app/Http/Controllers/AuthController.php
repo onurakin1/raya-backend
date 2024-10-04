@@ -9,6 +9,7 @@ use App\Models\SipUsers;
 use App\Models\SipButtons;
 use App\Enums\TokenAbility;
 use App\Models\Company;
+use App\Models\CompanyToGuide;
 use App\Models\Rooms;
 use App\Models\RoomUsers;
 use App\Models\UserDevices;
@@ -33,6 +34,9 @@ class AuthController extends Controller
             $today = Carbon::today();
             // 4 haneli kullanıcı adı oluşturma (rastgele sayı)
             $username = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            $company = Company::where('name', $request->company)->first();
+
+    
 
             // Şifreyi oluşturacak karakterlerin tanımı
             $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()';
@@ -54,7 +58,11 @@ class AuthController extends Controller
                 'photo_link' => $request->photo_link,
                 'password' =>  $request->password
             ]);
-
+            $companyToGuide = CompanyToGuide::create([
+                'company_id' => $company->id,
+                'user_id' => $user->id,
+       
+            ]);
             $addAsteriskUsers = RoomUsers::create([
                 'name' => $username,
                 'password' => $password,
@@ -281,7 +289,7 @@ class AuthController extends Controller
     }
     public  function login(Request $request)
     {
-        try {
+        
             $languageType = $request->header('Accept-Language');
             $user = User::where('email', $request->username)->first();
             $today = Carbon::today();
@@ -309,9 +317,18 @@ class AuthController extends Controller
 
 
             $userId = $user->id;
-            $companyToGuides = Company::whereHas('guides', function ($query) use ($userId) {
+            $companyToGuide = Company::whereHas('guides', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
-            })->get();
+            })->first(); // Koleksiyonun ilk elemanını al
+            
+            if ($companyToGuide) {
+                $company = [
+                    'id' => $companyToGuide->id,
+                    'name' => $companyToGuide->name,
+                ];
+            } else {
+                $company = null; // Eğer hiç şirket yoksa null dönebilir
+            }
 
             // $accessToken = $user->createToken('access_token', [TokenAbility::ACCESS_API->value], Carbon::now()->addMinutes(config('sanctum.ac_expiration')));
             // $refreshToken = $user->createToken('refresh_token', [TokenAbility::ISSUE_ACCESS_TOKEN->value], Carbon::now()->addMinutes(config('sanctum.rt_expiration')));
@@ -357,7 +374,7 @@ class AuthController extends Controller
                             'url' => "pbx.limonisthost.com"
                         ],
                         'room' => $rooms,
-                        'company' => $companyToGuides
+                        'company' => $company
                     ],
                 ],
 
@@ -365,16 +382,7 @@ class AuthController extends Controller
 
 
             ], 200);
-        } catch (\Exception $e) {
-            // Dil bilgisine göre hata mesajını ayarla
-            $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
-
-            // Hata durumunda JSON yanıtı döndür
-            return response()->json([
-                'status' => false,
-                'message' => $errorMessage, // Hata mesajı
-            ], 500); // 500 sunucu hatası kodu
-        }
+       
     }
     public function logout(Request $request)
     {
