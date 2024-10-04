@@ -59,7 +59,7 @@ class UserController extends Controller
         // Dosya yükleme işlemi
         if ($request->hasFile('file')) {
             // Dosya yükleme
-            $fileName = 'https://sip.limonist.dev/uploads' . $request->file('file')->getClientOriginalName();
+            $fileName = $request->file('file')->getClientOriginalName();
             $filePath = $request->file('file')->storeAs('images', $fileName, 'public');
 
             // Kullanıcının profil URL'sini güncelle
@@ -92,7 +92,7 @@ class UserController extends Controller
                 'lastname' => $user->last_name,
                 'phone_number' => $user->phone_number,
                 'username' => $user->email,
-                'photo_link' => $user->photo_link ?: "",
+                'photo_link' => 'https://sip.limonist.dev/uploads' . $user->photo_link ?: "",
                 'room' => $rooms,
            
 
