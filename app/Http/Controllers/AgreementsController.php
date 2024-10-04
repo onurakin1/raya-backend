@@ -41,7 +41,12 @@ class AgreementsController extends Controller
             return response()->json([
                 'status' => true,
                 'message' =>  $successMessage,
-                'data' => $formattedAgreements
+                'data' => [
+                    'items' =>   $formattedAgreements
+                ]
+                
+                
+              
             ]);
         } catch (\Exception $e) {
             // Dil bilgisine göre hata mesajını ayarla

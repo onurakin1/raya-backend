@@ -248,7 +248,7 @@ class AuthController extends Controller
                         'firstname' => $user->name,
                         'lastname' => $user->last_name,
                         'phone_number' =>  $user->phone_number,
-                        'full_name' => $user->full_name,
+                        'username' => $user->email,
                         'photo_link' => $user->photo_link,
                         'isabel' => [
                             'username' => $addAsteriskUsers->name,
