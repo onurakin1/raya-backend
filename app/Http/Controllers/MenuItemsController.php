@@ -74,7 +74,7 @@ class MenuItemsController extends Controller
                         'username' => $user->email,
                         'photo_link' => $user->photo_link ?: "",  // Boşsa "" olarak dönüyor
                         'room' => $rooms,
-                        'menu' => $menu,  // Dil desteği eklenmiş menü öğeleri
+                          // Dil desteği eklenmiş menü öğeleri
         
                         'isabel' => [
                             'username' => $asteriskUsers->name,
@@ -82,7 +82,8 @@ class MenuItemsController extends Controller
                             'link' => "pbx.limonisthost.com"
                         ],
                         'company' => $company,  // Kullanıcıya atanmış şirketler
-                    ]
+                    ],
+                    'menu' => $menu
                 ],
              
             ]);
