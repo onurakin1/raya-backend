@@ -27,11 +27,11 @@ class AgreementsController extends Controller
         
                 // Dil bilgisine göre açıklamayı al
                 $title = $titles[$languageType] ?? $titles['en'] ?? '';
-        
+                $description = $descriptions[$languageType] ?? $titles['en'] ?? '';
                 return [
                     'id' => $agreement->id,
                     'title' => $title,
-                    'description' => $descriptions
+                    'description' => $description
                    // Kullanıcının diline göre açıklamayı ekle
                 ];
             });
