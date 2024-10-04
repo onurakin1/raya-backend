@@ -79,17 +79,11 @@ class CallCenterController extends Controller
                         'is_active' => true,
                         'sender_type' => 2 // Gönderen tipi 2
                     ],
-                    [
-                        'user_id' => $userId,
-                        'content' => 'test',
-                        'created_at' => $today,
-                        'is_active' => true,
-                        'sender_type' => 1 // Gönderen tipi 1
-                    ],
+                   
                 ]);
             }
             
-            if($existingMessages){
+         
                 $createdMessage = CallCenter::create([
                     'user_id' => $userId,
                     'content' => $content,
@@ -97,7 +91,7 @@ class CallCenterController extends Controller
                     'is_active' => true,
                     'sender_type' => 1 // Kullanıcının kendi mesajı
                 ]);
-            }
+            
             // Kullanıcının gönderdiği mesajı kaydet
      
     
