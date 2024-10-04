@@ -61,7 +61,7 @@ class MenuItemsController extends Controller
                     'type' => $item->type,
                     'switch_value' => 0
                 ];
-            })->sortBy('order_number');
+            })->sortBy('order_number')->values();
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
             return response()->json([
                 'status' => true,
