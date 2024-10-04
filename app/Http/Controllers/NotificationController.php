@@ -28,7 +28,7 @@ class NotificationController extends Controller
             $notification_settings = DB::table('notification_settings')
             ->join('user_notification_settings', 'notification_settings.id', '=', 'user_notification_settings.notification_setting_id')
             ->where('user_notification_settings.user_id', $userId)
-            ->select('notification_settings.id', 'notification_settings.title', 'user_notification_settings.status') // 'id' alanını seçiyoruz
+            ->select('notification_settings.id', 'notification_settings.title', 'user_notification_settings.status', 'user_notification_settings.is_active') // is_active alanını da seçiyoruz
             ->get();
        
     
