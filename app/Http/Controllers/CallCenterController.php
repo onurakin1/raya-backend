@@ -25,7 +25,7 @@ class CallCenterController extends Controller
                 return [
                     'id' => $message->id,
                     'content' => $message->content,
-                    'type' => $message->sender_type, // sender_type direkt type olarak alındı
+                    'type' => intval($message->sender_type), // sender_type direkt type olarak alındı
                     'date' => Carbon::parse($message->created_at)->format('d.m.Y H:i:s') // Dizeyi Carbon nesnesine çevirip formatla
                 ];
             });
