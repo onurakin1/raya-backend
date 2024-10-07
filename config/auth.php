@@ -35,12 +35,12 @@ return [
     |
     */
 
-    'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
+'guards' => [
+    'api' => [
+        'driver' => 'passport', // veya sanctum, jwt, vb.
+        'provider' => 'users',
     ],
+],
 
     /*
     |--------------------------------------------------------------------------

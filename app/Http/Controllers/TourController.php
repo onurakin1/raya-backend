@@ -7,6 +7,7 @@ use App\Models\Tours;
 use Illuminate\Http\Request;
 use App\Models\TourToGuide;
 use Carbon\Carbon;
+use Illuminate\Auth\AuthenticationException;
 
 class TourController extends Controller
 {
@@ -241,7 +242,7 @@ class TourController extends Controller
 
     public function getAllToursToGuide(Request $request)
     {
-        try{
+        try {
             $user = $request->user();
             $userId = $user->id;
             $languageType = $request->header('Accept-Language');
@@ -260,7 +261,9 @@ class TourController extends Controller
                     'data' => null
                 ], 404); // 404 Not Found
             }
+    
             $successMessage = ($languageType === 'tr') ? 'Başarılı' : 'Successfully';
+    
             // Turları ve detaylarını JSON formatında döndür
             return response()->json([
                 'status' => true,
@@ -270,30 +273,30 @@ class TourController extends Controller
                         // Tour name localization
                         $tourNames = json_decode($tour->name, true);
                         $tourName = $tourNames[$languageType] ?? $tourNames['en'] ?? '';
-                
+    
                         // Details localization
                         $tourDetails = $tour->details->first();
                         $tourDescriptions = json_decode(optional($tourDetails)->description, true);
                         $tourDescription = $tourDescriptions[$languageType] ?? $tourDescriptions['en'] ?? '';
-                
+    
                         // Extract additional details safely
                         $tourRooms = json_decode(optional($tourDetails)->voice_rooms, true) ?? [];
                         $tourMaterials = json_decode(optional($tourDetails)->materials, true) ?? [];
                         $tourDates = optional($tourDetails)->tour_dates ?? 'N/A'; // Get tour dates
-                
+    
                         // Check if the dates are in the past
                         if ($tourDates !== 'N/A') {
                             [$startDate, $endDate] = explode(' - ', $tourDates);
                             // Convert to Carbon instances for comparison
                             $currentDate = now(); // Get the current date
                             $isPast = Carbon::parse($endDate)->isPast(); // Check if the end date is in the past
-            
+    
                             // If the tour dates are in the past, return null
                             if ($isPast) {
                                 return null; // Return null instead of an object
                             }
                         }
-                
+    
                         return [
                             'id' => $tour->id,
                             'code' => $tour->tour_code,
@@ -307,8 +310,14 @@ class TourController extends Controller
                 ],
             ]);
             
-        }
-        catch (\Exception $e) {
+        } catch (AuthenticationException $e) {
+            $errorMessage = ($languageType === 'tr') ? 'Yetkilendirme hatası oluştu' : 'Unauthorized access';
+            return response()->json([
+                'status' => false,
+                'message' => $errorMessage,
+            ], 401); // 401 Unauthorized
+    
+        } catch (\Exception $e) {
             // Dil bilgisine göre hata mesajını ayarla
             $errorMessage = ($languageType === 'tr') ? 'Sunucu hatası oluştu' : 'Server error occurred';
     
@@ -318,7 +327,6 @@ class TourController extends Controller
                 'message' => $errorMessage, // Hata mesajı
             ], 500); // 500 sunucu hatası kodu
         }
-  
     }
 
 
