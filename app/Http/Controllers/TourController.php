@@ -6,6 +6,7 @@ use App\Models\RoomUsers;
 use App\Models\Tours;
 use Illuminate\Http\Request;
 use App\Models\TourToGuide;
+use App\Models\Offers;
 use Carbon\Carbon;
 use Illuminate\Auth\AuthenticationException;
 
@@ -46,6 +47,29 @@ class TourController extends Controller
     public function store(Request $request)
     {
         //
+    }
+
+    public function createOffers(Request $request)
+    {
+       // Request body'den verileri al
+       $offerData = $request->only([
+        'full_name',
+        'phone_number',
+        'email',
+        'tax_plate',
+        'signature_circular',
+        'created_at',
+        'deleted_at'
+    ]);
+
+    // Yeni teklif oluştur
+    $offer = Offers::create($offerData);
+
+    // Başarılı yanıt döndür
+    return response()->json([
+        'message' => 'Teklif başarıyla oluşturuldu.',
+        'offer' => $offer
+    ], 201);
     }
     public function AccountCheck(Request $request)
     {

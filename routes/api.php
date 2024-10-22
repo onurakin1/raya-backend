@@ -43,6 +43,7 @@ Route::post('/disable-notifications', [NotificationController::class, 'DisableNo
 Route::get('/agreements', [AgreementsController::class, 'index']);
 Route::get('/tour-registration', [TourController::class, 'tourRegistration']);
 Route::get('/account-check', [TourController::class, 'AccountCheck']);
+Route::get('/offer', [TourController::class, 'createOffers']);
 Route::get('/tour-detail', [TourController::class, 'tourDetail']);
 Route::post('/tours', [TourController::class, 'getAllToursToGuide'])->middleware('auth:sanctum');
 Route::get('/app-version-control', [AppControlsController::class, 'checkVersion']);
