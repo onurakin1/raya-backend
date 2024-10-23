@@ -75,7 +75,7 @@ class TourController extends Controller
             $filePath = $request->file('signature_circular')->storeAs('images', $fileName, 'public');
             
             // Dosya yolunu doğrulanan verilere ekleme
-            $validatedData['tax_plate'] = $filePath;
+            $validatedData['signature_circular'] = $filePath;
         }
         // Yeni teklif oluşturma
         $offer = Offers::create($validatedData);
