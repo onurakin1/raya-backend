@@ -54,6 +54,7 @@ class TourController extends Controller
         // Geçerli verileri doğrulama
         $validatedData = $request->validate([
             'tax_plate' => 'nullable|mimes:jpg,png,pdf|max:2048', // nullable ile isteğe bağlı
+            'signature_circular' => 'nullable|mimes:jpg,png,pdf|max:2048',
             'full_name' => 'nullable|string|max:255', // nullable ile isteğe bağlı
             'email' => 'nullable|string|max:255', // nullable ile isteğe bağlı
             'phone_number' => 'nullable|string|max:255', // nullable ile isteğe bağlı
@@ -68,7 +69,14 @@ class TourController extends Controller
             // Dosya yolunu doğrulanan verilere ekleme
             $validatedData['tax_plate'] = $filePath;
         }
-    
+        if ($request->hasFile('signature_circular')) {
+            // Dosya yükleme
+            $fileName = $request->file('signature_circular')->getClientOriginalName();
+            $filePath = $request->file('signature_circular')->storeAs('images', $fileName, 'public');
+            
+            // Dosya yolunu doğrulanan verilere ekleme
+            $validatedData['tax_plate'] = $filePath;
+        }
         // Yeni teklif oluşturma
         $offer = Offers::create($validatedData);
     
